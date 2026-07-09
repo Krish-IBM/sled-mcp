@@ -1,0 +1,14 @@
+# Dependencies for the SLED scoring-agent Lambda (separate from the router's
+# minimal requirements.txt). Transitive binary deps (pdfminer.six, pillow,
+# pypdfium2, lxml, cryptography, cffi, et-xmlfile, charset-normalizer, botocore)
+# resolve automatically. build_scoring_package.sh installs manylinux wheels so
+# no Docker is needed.
+pdfplumber==0.11.8
+pypdf==6.14.2
+python-pptx==1.0.2
+openpyxl==3.1.5
+PyYAML==6.0.3
+# Bundled so Bedrock Converse + Textract APIs are current (Lambda's built-in
+# boto3 can lag). Drop this line to shrink the package if the runtime's boto3
+# already supports bedrock-runtime converse in your region.
+boto3==1.42.97
