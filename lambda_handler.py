@@ -11,6 +11,7 @@ import urllib.parse
 import urllib.request
 import base64
 import time
+import uuid
 from typing import Optional
 
 import jwt
@@ -34,6 +35,10 @@ _client_secret_cache = None
 SLED_DOCS_QUERY_URL = os.environ["SLED_DOCS_QUERY_URL"]
 ANALYZE_DEAL_URL    = os.environ.get("ANALYZE_DEAL_URL", "")
 SCORING_AGENT_URL   = os.environ.get("SCORING_AGENT_URL", "")
+BID_ANALYSIS_AGENT_URL = os.environ.get(
+    "BID_ANALYSIS_AGENT_URL",
+    "https://5uanpy2351.execute-api.us-east-1.amazonaws.com/",
+)
 
 # ── Agent registry — maps agent name → backend URL, payload key, description ───
 # payload_key is the JSON field each backend expects (docs/scoring use "query";
@@ -84,6 +89,20 @@ AGENT_REGISTRY = {
             "assess", "assessment", "deal", "pipeline",
         ),
     },
+    "bid_analysis": {
+        "url": BID_ANALYSIS_AGENT_URL,
+        "payload_key": "query",
+        "description": (
+            "Analyze solicitation, RFP, RFQ, proposal, and bid materials to produce "
+            "opportunity summaries, compliance requirements, deadlines, evaluation "
+            "criteria, risks, pursuit guidance, and IBM-relevant bid intelligence."
+        ),
+        "keywords": (
+            "bid", "proposal", "solicitation", "rfp", "rfq", "compliance",
+            "requirements", "no", "no-bid", "pursuit", "opportunity", "analysis",
+            "analyze", "deadlines", "deadline", "forms", "red", "flags",
+        ),
+    },
 }
 
 # Agent used when the keyword heuristic finds no match. docs is always configured
@@ -104,6 +123,18 @@ MCP_SUPPORTED_PROTOCOL_VERSIONS = {
     "2024-11-05",
 }
 _EXPOSE_HEADERS = "WWW-Authenticate, MCP-Session-Id, MCP-Protocol-Version, Allow"
+
+# When enabled (MCP_STATEFUL_SESSIONS=1), the server returns an MCP-Session-Id on
+# initialize and echoes it on later responses. Default OFF (stateless, POST-only).
+# This is an experiment to stop Otto's client-side initialize-only reconnect loop:
+# some MCP clients treat a session-id-less initialize as "not established" and
+# re-handshake forever without re-issuing tools/list, so the tool disappears from
+# the client's registry. We still NEVER open a GET SSE stream — we only mint an
+# opaque session id (no server-side state). Enable on a TEST connector first and
+# watch for tools/list following initialize (see OTTO_MCP_DIAGNOSIS.md).
+MCP_STATEFUL_SESSIONS = os.environ.get("MCP_STATEFUL_SESSIONS", "").strip().lower() in (
+    "1", "true", "yes", "on",
+)
 
 # ── Request helpers (REST API v1, HTTP API v2, and Lambda Function URL) ───────
 # Fallback env vars used only when headers are absent (direct Lambda invoke).
@@ -600,18 +631,23 @@ def _resp(status: int, body: dict, extra_headers: Optional[dict] = None) -> dict
 
 
 
-def _initialize_headers(response: dict) -> dict:
+def _initialize_headers(response: dict, incoming_session_id: str = "") -> dict:
     result = response.get("result") if isinstance(response, dict) else None
     if not isinstance(result, dict) or "protocolVersion" not in result:
         return {}
 
-    # Do NOT send MCP-Session-Id: per the 2025-11-25 spec, if the server
-    # sends a session ID the client MUST open a GET SSE stream. Lambda can't
-    # hold open persistent SSE connections, so omitting the session ID puts
-    # the client in stateless POST-only mode — exactly what we want.
-    return {
-        "MCP-Protocol-Version": result["protocolVersion"],
-    }
+    headers = {"MCP-Protocol-Version": result["protocolVersion"]}
+
+    # By default do NOT send MCP-Session-Id: per the 2025-11-25 spec, if the
+    # server sends a session ID the client MUST open a GET SSE stream, which a
+    # stateless Lambda can't hold open — so omitting it keeps the client in
+    # POST-only mode. MCP_STATEFUL_SESSIONS flips this ON to test whether Otto's
+    # client needs a session id to stop its initialize-only reconnect loop. We
+    # mint an opaque id (stateless — no server-side store) or reuse the client's.
+    if MCP_STATEFUL_SESSIONS:
+        headers["MCP-Session-Id"] = incoming_session_id or uuid.uuid4().hex
+
+    return headers
 
 
 def _accepted_response(extra_headers: Optional[dict] = None) -> dict:
@@ -703,6 +739,13 @@ def lambda_handler(event, _context):
             },
             "body": "",
         }
+
+    # MCP session termination (stateful mode only): a client may DELETE /mcp
+    # with an Mcp-Session-Id to end the session. We hold no server-side state,
+    # so acknowledge it. Only active when MCP_STATEFUL_SESSIONS is on — otherwise
+    # DELETE falls through to the 404 below (unchanged stateless behavior).
+    if method == "DELETE" and MCP_STATEFUL_SESSIONS and path.rstrip("/").endswith("/mcp"):
+        return _resp(200, {"status": "session_terminated"})
 
     # Authorization Server Metadata — unauthenticated (RFC 8414 / OIDC alias)
     if method == "GET" and (
@@ -818,7 +861,11 @@ def lambda_handler(event, _context):
                 extra_headers["MCP-Session-Id"] = session_id
             return _accepted_response(extra_headers)
 
-        extra_headers = _initialize_headers(response)
+        extra_headers = _initialize_headers(response, session_id)
+        # In stateful mode, echo the session id on every (non-initialize)
+        # response so the client keeps reusing the same session.
+        if MCP_STATEFUL_SESSIONS and session_id and "MCP-Session-Id" not in extra_headers:
+            extra_headers["MCP-Session-Id"] = session_id
         # Always return JSON — never SSE — for POST responses on a stateless
         # Lambda. If we return text/event-stream, Otto opens an SSE stream that
         # closes the moment Lambda terminates, which Otto interprets as a
