@@ -26,6 +26,28 @@ Why not just fix the Bedrock agent's model/instruction? `update-agent` requires
 `iam:PassRole` on `AmazonBedrockAgentRole-sled`, which the `Krish.Chavan@ibm.com`
 user is denied (needs admin). Fixing at the Lambda layer avoids that block.
 
+## Corpus catalog (enumeration questions)
+
+RAG can only match text *inside* documents — it can't enumerate the S3 folder
+structure. So "who are IBM's competitors" / "what vendors do you track" / "what
+procurements does Deloitte have" have no good RAG answer even though the folder
+tree literally *is* the answer (vendor folders = competitors; sub-folders =
+procurements).
+
+`lambda_function.py` embeds a snapshot of that tree (`CATALOG`, generated from
+`catalog.json`). For enumeration-intent questions it answers directly from the
+catalog (`engine: catalog`); win/loss questions (contain "won"/"lost"/"awarded")
+and everything else fall through to `retrieve_and_generate`.
+
+**Regenerate the catalog when the bucket structure changes:**
+```bash
+aws s3api list-objects-v2 --bucket competitive-intelligence-sled \
+  --query 'Contents[].Key' --output text | tr '\t' '\n' > /tmp/keys.txt
+# rebuild catalog.json (vendor -> [procurements]; folders starting with a digit,
+# "Old", "ZZ", or "FOIA Analysis" are treated as collections), then re-embed the
+# JSON into CATALOG in lambda_function.py and redeploy.
+```
+
 ## Deploy
 
 ```bash

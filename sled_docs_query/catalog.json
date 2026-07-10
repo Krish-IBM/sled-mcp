@@ -1,0 +1,398 @@
+{
+ "vendors": {
+  "AHEAD": [
+   "AHEAD  CA CAIR3 RFI Response"
+  ],
+  "AST Corp": [
+   "Applications Software Tech Santa Clara ERP Proposal",
+   "Chicago Housing Authority (2022)",
+   "FL Broward (2013)",
+   "FL Tampa Hillsborough (eBiz Suite) (2011)",
+   "Public Sector Oracle Cloud Competitor Proposals (from AST)",
+   "VA Loudon County (2012)"
+  ],
+  "Accenture": [
+   "AR IE-BM (2018) (HHS)",
+   "AZ AFIS (ERP) (2013)",
+   "Accenture CA CAIR3 RFI Response",
+   "Accenture Contracts with CDPH (California)",
+   "Accenture FL CCWIS 2022 Proposal",
+   "Accenture Santa Clara ERP Proposal",
+   "Accenture_BAFO_Proposal AZ Dept of Child Safety",
+   "CA CDCR S4 HANA Migration 2024 FOIA",
+   "CA FI$Cal (ERP) (2011)",
+   "CA HBX (2012)",
+   "CA MyCalPays (HCM) (2009)",
+   "CA NY Integrated Eligibility",
+   "CALPERS - Pension System Replacement Resumption (2006)",
+   "FL Child Welfare",
+   "FL DOT FTE nBOS RFI (2019)",
+   "FL Integrated Eligibility M&O (2012)",
+   "FL Tampa Hillsborough ERP (2011)",
+   "Federal IDIQ Alliant",
+   "GA IES (2014)",
+   "IA Eligibility (2012)",
+   "ID Child Welfare",
+   "IL IES",
+   "IL Municipal Retirement Fund (IMRF - 2012)",
+   "IL Tolling (2016)",
+   "KS ERP (2009)",
+   "MI ERP (2014)",
+   "MN Data Analytics",
+   "MO ERP Evaluation and Signed Contract (2022)",
+   "Missouri Department of Administration (ERP Solution Implementation Services)",
+   "NC FAST (2010)",
+   "Ohio OAKS ERP (2006)",
+   "PA Turnpike",
+   "Tolling",
+   "TxDOT BOS (2018)",
+   "WVA ERP (2011)",
+   "WY Eligibility System (2012)",
+   "WY MMIS Proposal",
+   "WY WINGS Medicaid SI (2017)",
+   "Washington D.C Office (CFOPD-19-R-001.  Enterprise Financial System) 2018.2019",
+   "ZZ - General Sales - Road Charging (2011)"
+  ],
+  "AdvoLogix": [
+   "FL DEPT OF CORRECTIONS OBIS (2021)"
+  ],
+  "Akido Labs": [
+   "ZZ - Information on Key Akido Labs Leadership"
+  ],
+  "Amzur Technologies, Inc\u25a1": [
+   "FL DEPT OF CORRECTIONS OBIS (2021)"
+  ],
+  "Atos": [
+   "VITA Security"
+  ],
+  "Bahwan CyberTek Inc Santa Clara ERP Proposal": [],
+  "Binti Inc": [
+   "Binti Inc FL CCWIS 2022 Proposal"
+  ],
+  "Black and Veatch Tampa Hillsborough (2011)": [
+   "Black and Veatch"
+  ],
+  "Business Integra": [],
+  "CGI": [
+   "CGI Technologies and Solutions Inc FL CCWIS 2022 Proposal",
+   "FL Child Welfare",
+   "Pre 2025 CGI"
+  ],
+  "CHMRC": [
+   "CHMRC  CA CAIR3 RFI Response"
+  ],
+  "Capgemini": [
+   "FDOT nBOS RFI (2019)"
+  ],
+  "Cardinality": [],
+  "Case Commons": [
+   "CA CWS-NS 2017"
+  ],
+  "CaseNet": [
+   "California Population Health Proposal"
+  ],
+  "Cedar Crestone": [
+   "FL Broward (2014)",
+   "FL Tampa Hillsborough (2011)",
+   "IL Municipal Retirement Fund (IMRF 2012)",
+   "U of MN (2013)"
+  ],
+  "CherryRoad": [
+   "FL Tampa Hillsborough (ERP - 2011)",
+   "WI (PS ERP - 2013)",
+   "WVA (ERP - 2011)"
+  ],
+  "Ciber": [
+   "FL Broward (ERP 2013)",
+   "FL Tampa Hillsborough ERP (2011)",
+   "FL Tolling (2020)",
+   "MD Montgomery Cnty ERP",
+   "WA King County (2012)",
+   "WA SBCTC",
+   "ZZ Misfiled - Jenny to move"
+  ],
+  "Cognizant": [
+   "MA Tolling",
+   "TX Tolling",
+   "TxDOT BOS (2018)"
+  ],
+  "Collaborative Solutions (Workday)": [
+   "Collaborative State of Washington (OneWa) Workday 2020"
+  ],
+  "Conduent": [
+   "FL Tolling",
+   "MD Tolling",
+   "MI Tolling",
+   "NJ Tolling",
+   "NY Tolling"
+  ],
+  "Conduent (Formerly Xerox State and Local Solutions)": [
+   "Conduent Contract Information and Response_FL SunPass",
+   "FL SunPass (2015)",
+   "Maryland Congestion Relief (2017)",
+   "Michigan Toll Bridge (2012)",
+   "NH EZPass Tolling BOS (2015)",
+   "New Jersey EZ-Pass CSC Contract (2015)",
+   "SC Contact Center Proposal (2016)",
+   "TxDOT BOS (2018)"
+  ],
+  "Corespere": [
+   "Corespere LLC FL CCWIS 2022 Proposal"
+  ],
+  "Creative Information Technology": [
+   "Creative Information Technology Inc FL CCWIS 2022 Proposal"
+  ],
+  "Cubic": [
+   "FDOT nBOS RFI (2019)",
+   "NH EZPass Tolling BOS (2015)"
+  ],
+  "DXC": [
+   "FL MMIS DXC Proposal"
+  ],
+  "Delaware EDW FOIA Scoring": [],
+  "Dell": [
+   "WY Eligibility (2012)"
+  ],
+  "Deloitte": [
+   "AK DHSS Eligiblity - Medicaid (2012)",
+   "AR Human Services M&O (2017)",
+   "AR IE-BM (2018)",
+   "CA - City of San Diego ADMI (2018)",
+   "CA CDCR S4 HANA Migration 2024 FOIA",
+   "CA CWS-NS (2017)",
+   "CA Dept of Child Support Services Migration to Azure",
+   "CA EDD ICMS RFP 3362",
+   "CA Orange County (2019)",
+   "California Population Health Proposal",
+   "Child Welfare Deloitte Contracts and Orals",
+   "DE FACTS II Child Welfare (2012)",
+   "Deloitte  CA CAIR3 RFI Response",
+   "Deloitte Contract",
+   "Deloitte FL CCWIS 2022 Proposal",
+   "Deloitte State of Washington Workday (OneWA) 2020",
+   "Deloitte's Contracts with CDPH (California)",
+   "FL Child Welfare",
+   "FL DEPT OF CORRECTIONS OBIS (2021)",
+   "FL Integrated Eligibility M&O (2012)",
+   "FL MMIS",
+   "Georgia IE (Contract and Proposal)",
+   "IA Eligibility (2012)",
+   "ID Child Welfare",
+   "ID Child Welfare (2018)",
+   "IL Child Welfare",
+   "IL DHFS Child Support (2013)",
+   "IL Medicaid RFI (2014)",
+   "IN IES (2012)",
+   "Iowa DHS Medicaid Program Integrity Professional Services (2024)",
+   "KY CHFS",
+   "LA Medicaid Eligibility (2015)",
+   "LA Rate Card",
+   "MI Bridges (2017) & 2010 Evaluation",
+   "MI ERP (2014)",
+   "MI HIE Hub (2013)",
+   "MN Data Analytics (2014)",
+   "MO ERP Evaluation (2022)",
+   "MT Chimes (2009)",
+   "OH MES (Medicaid) SI 2018",
+   "Orange County ERP Deloitte",
+   "RI UHIP Contract  & Assessment (2012)",
+   "TN PI RFP (2022)",
+   "TN TennCare 2012",
+   "TX DIR-CPO (2025)",
+   "VA MES (Medicaid) SI 2018",
+   "WA ACES M&O for DSHS",
+   "WVA DHHR IES (2017)",
+   "WY HIEES (2012)",
+   "WY Integrated Eligibility M&O (2016)",
+   "WY MMIS",
+   "WY MMIS Contract",
+   "WY MMIS Proposal",
+   "WY Medicaid SI (WINGS) (2017)",
+   "Washington CCWIS Modernization 2025 (Awarded)",
+   "Washington D.C Office (CFOPD-19-R-001.  Enterprise Financial System) 2018.2019"
+  ],
+  "Denovo": [
+   "Denovo Ventures LLC Santa Clara ERP Proposal"
+  ],
+  "Digital Management": [
+   "Digital Management LLC FL CCWIS 2022 Proposal"
+  ],
+  "Diona": [
+   "AZ CW Solution Mobile (2016)"
+  ],
+  "ETCC": [
+   "FDOT nBOS RFI (2019)"
+  ],
+  "Engagepoint": [
+   "Missouri IES",
+   "WY MES (Medicaid) SI (2017)"
+  ],
+  "Engility - DRC": [],
+  "Ernst & Young": [
+   "E and Y  CA CAIR3 RFI Response"
+  ],
+  "Etan Industries LLC": [
+   "UT Tolling"
+  ],
+  "FORWARD": [],
+  "Faneuil": [
+   "FDOT nBOS RFI (2019)"
+  ],
+  "Fieldware, LLC": [
+   "FL DEPT OF CORRECTIONS OBIS (2021)"
+  ],
+  "GDIT": [
+   "Alabama MMIS Contract",
+   "FL MMIS GDIT Proposal"
+  ],
+  "Gainwell": [
+   "California Population Health Proposal",
+   "Gainwell"
+  ],
+  "Gila d_b_a MSB": [
+   "TxDOT BOS (2018)"
+  ],
+  "Google": [
+   "Google  CA CAIR3 RFI Response"
+  ],
+  "Guidehouse": [
+   "Guidehouse FL CCWIS 2022 Proposal"
+  ],
+  "GxP Partners, LLC": [
+   "FL DEPT OF CORRECTIONS OBIS (2021)"
+  ],
+  "HCL": [
+   "HCL America Inc Santa Clara ERP Proposal",
+   "IA Integrated Eligibility (2012)"
+  ],
+  "HOTB": [],
+  "HP (& EDS)": [
+   "CA CMIPS Original EDS Proposal",
+   "CA SAWS M&O (2016)",
+   "CA SOMS (2009)",
+   "CMIPS II (2008) - contract & amendments",
+   "COSD ITO",
+   "Irvine (2016)",
+   "NJ CASS"
+  ],
+  "HealthNet": [
+   "Arizona MMIS"
+  ],
+  "Houston Technologies LLC": [
+   "FL DEPT OF CORRECTIONS OBIS (2021)"
+  ],
+  "IBM Scoring": [
+   "FL MMIS IBM Proposal",
+   "IBM FL CCWIS 2022 Proposal",
+   "IBM Santa Clara ERP Proposal",
+   "Santa Clara Valley Transit ERP Contract",
+   "WA CCWIS Proposal"
+  ],
+  "IBM Tampa": [
+   "Financials",
+   "Original RFP"
+  ],
+  "Infosys": [
+   "AR IE-BM (2018)",
+   "MO ERP Evaluation (2022)",
+   "SC CGIS 2016",
+   "SC CGIS 2017"
+  ],
+  "Intellias (Infor)": [
+   "Chicago Housing Authority (2022)"
+  ],
+  "Ithena": [],
+  "KAI": [
+   "KAI  CA CAIR3 RFI Response"
+  ],
+  "KPMG": [
+   "KPMG FL CCWIS 2022 Proposal",
+   "MO ERP",
+   "Washington D.C Office of Contracts and Procurement (CFOPD-19-R-001.  Enterprise Financial System)"
+  ],
+  "Kapsch": [
+   "TxDOT BOS (2018)"
+  ],
+  "Kapsch Trafficcom": [
+   "LOUISVILLE-SOUTHERN INDIANA OHIO RIVER BRIDGES TOLL"
+  ],
+  "LexisNexis": [
+   "LexisNexis  CA CAIR3 RFI Response"
+  ],
+  "MTX": [
+   "NM Contact Tracing",
+   "Nebraska Licensing",
+   "TX Contact Tracing"
+  ],
+  "Marquis Software": [
+   "FL DEPT OF CORRECTIONS OBIS (2021)"
+  ],
+  "McKinsey": [
+   "McKinsey  CA CAIR3 RFI Response",
+   "McKinsey's Contracts with CDPH (California)"
+  ],
+  "Medicision": [
+   "ZZ - Leadership"
+  ],
+  "Mi-Case": [
+   "FL DEPT OF CORRECTIONS OBIS (2021)"
+  ],
+  "Micro Focus Inc\u25a1": [
+   "FL DEPT OF CORRECTIONS OBIS (2021)"
+  ],
+  "Microsoft": [
+   "AZ CW Solution Mobile (2016)"
+  ],
+  "Northrop Grumman": [
+   "AR Human Services M&O (2017)",
+   "AR M&O 2017",
+   "LA IT Services Rates (2014)",
+   "RI UHIP Eligiblity (2012)",
+   "TennCares Medicaid Eligibility (2012)",
+   "WY Eligibility (2016)"
+  ],
+  "Northwoods": [
+   "AZ CW Solution Mobile (2016)"
+  ],
+  "eSystems": [
+   "AR EEF eSystems Rates",
+   "FED GSA Proposal & Rates",
+   "SC Curam CGIS (2016)",
+   "SC eSystems Rates to IBM",
+   "WY Eligibility"
+  ]
+ },
+ "collections": {
+  "00_FOIA Analysis": [],
+  "01_NEW 2026": [
+   "(Partial Documents) Sound Transit ERP Platform",
+   "(Partial Recieved) BAIFA's Next Generation Express Lanes Toll System Open Host Data Platform",
+   "AL Data Warehouse_2023",
+   "BATA (FasTrak\u00ae Regional Customer Service Center)",
+   "California DHCS (HR + Modernization) Workday 151073",
+   "California DHCS RFP 23-063",
+   "California Dental Medicaid Management Information System Fiscal Intermediary",
+   "California Department of Corrections and Rehabilitation (RFP C5608110-D\u25a1 CDCR SOMS M&O)",
+   "California Department of Corrections and Rehabilitation( C5607998-D CDCR PaaS for SOMS Hosting)",
+   "Child Welfare",
+   "City of Los Angeles",
+   "FL Broward County",
+   "Florida Broward County",
+   "Illinois IES",
+   "KPMG",
+   "Kentucky COT AI",
+   "Medicaid",
+   "NC Department of Health & Human Services (sole source)",
+   "New Jersey Turnpike EZ Pass Back Office",
+   "New York City Office for People with Developmental Disabilities (OPWDD)",
+   "Old",
+   "State Roadway Toll Authority (SRTA) Toll Integration Services Contractor (TISC)",
+   "TX DOT Toll Operations Contract (CSC 2013)",
+   "Texas Department of Information Resources (RFO Number\u25a1 DIR-CPO-TMP-550)",
+   "Washington D.C Office of Contracts and Procurement (CFOPD-19-R-001.  Enterprise Financial System)"
+  ],
+  "22nd Century": [
+   "CA Dept of Child Support Services Migration to Azure"
+  ]
+ }
+}

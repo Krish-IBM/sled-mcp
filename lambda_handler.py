@@ -10,6 +10,7 @@ import urllib.error
 import urllib.parse
 import urllib.request
 import base64
+import hashlib
 import time
 import uuid
 from typing import Optional
@@ -30,6 +31,48 @@ W3ID_INTROSPECTION_URL = os.environ.get(
 
 _jwks = PyJWKClient(JWKS_URI)              # module-level: reused across warm invocations
 _client_secret_cache = None
+
+# ── Introspection result cache ────────────────────────────────────────────────
+# w3id tokens are opaque, so verify_token falls back to a POST introspection call
+# (up to 8s) on EVERY authenticated request — initialize, tools/list, each
+# tools/call. Under Otto's re-handshake churn that adds up and can look like the
+# connector "timing out". Cache successful introspections per token (module-level,
+# reused across warm invocations) for a short TTL, never past the token's own exp.
+# Trade-off: a token revoked mid-TTL stays accepted until the entry expires, so
+# keep the TTL modest (default 300s; tune via INTROSPECTION_CACHE_TTL=0 to disable).
+_introspection_cache = {}                  # sha256(token) -> (expiry_epoch, claims)
+_INTROSPECTION_CACHE_TTL = int(os.environ.get("INTROSPECTION_CACHE_TTL", "300"))
+_INTROSPECTION_CACHE_MAX = int(os.environ.get("INTROSPECTION_CACHE_MAX", "1000"))
+
+
+def _introspection_cache_get(token_hash: str):
+    entry = _introspection_cache.get(token_hash)
+    if not entry:
+        return None
+    expiry, claims = entry
+    if expiry <= time.time():
+        _introspection_cache.pop(token_hash, None)
+        return None
+    return claims
+
+
+def _introspection_cache_put(token_hash: str, claims: dict) -> None:
+    if _INTROSPECTION_CACHE_TTL <= 0:
+        return
+    now = time.time()
+    if len(_introspection_cache) >= _INTROSPECTION_CACHE_MAX:
+        for stale in [k for k, (exp, _) in _introspection_cache.items() if exp <= now]:
+            _introspection_cache.pop(stale, None)
+        if len(_introspection_cache) >= _INTROSPECTION_CACHE_MAX:
+            _introspection_cache.clear()   # simple bound; cold-ish restart of the cache
+    expiry = now + _INTROSPECTION_CACHE_TTL
+    token_exp = claims.get("exp")
+    if token_exp is not None:
+        try:
+            expiry = min(expiry, int(token_exp))
+        except (TypeError, ValueError):
+            pass
+    _introspection_cache[token_hash] = (expiry, claims)
 
 # ── Backend URLs ──────────────────────────────────────────────────────────────
 SLED_DOCS_QUERY_URL = os.environ["SLED_DOCS_QUERY_URL"]
@@ -373,6 +416,12 @@ def _validate_common_claims(claims: dict) -> None:
 
 
 def _introspect_token(token: str) -> dict:
+    token_hash = hashlib.sha256(token.encode("utf-8")).hexdigest()
+    cached = _introspection_cache_get(token_hash)
+    if cached is not None:
+        _log("auth", status="introspection_cache_hit")
+        return cached
+
     form = urllib.parse.urlencode({
         "token": token,
         "token_type_hint": "access_token",
@@ -402,6 +451,7 @@ def _introspect_token(token: str) -> dict:
         raise jwt.InvalidTokenError("Inactive token")
 
     _validate_common_claims(claims)
+    _introspection_cache_put(token_hash, claims)
     return claims
 
 def verify_token(token: str) -> dict:
