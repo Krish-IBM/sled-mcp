@@ -1,0 +1,7 @@
+# Local-development extras (not bundled into the Lambda deploy packages).
+#   pip install -r requirements-dev.txt
+#
+# python-dotenv gives env_config.py nicer .env parsing. It is OPTIONAL: without
+# it, env_config.py falls back to a built-in KEY=VALUE parser, so `.env` still
+# works with no install.
+python-dotenv==1.0.1

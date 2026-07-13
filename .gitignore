@@ -1,0 +1,20 @@
+# Local environment — never commit real secrets/URLs. Template lives in .env.example
+.env
+.env.*
+!.env.example
+
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.pytest_cache/
+.venv/
+venv/
+
+# Deploy rollback snapshots (large binaries; keep local only)
+build/*.predeploy*
+build/*.bak
+*.zip.bak
+
+# OS
+.DS_Store

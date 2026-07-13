@@ -18,6 +18,13 @@ from typing import Optional
 import jwt
 from jwt import PyJWKClient
 
+# Load .env for local dev before any os.environ reads below. No-op in Lambda,
+# where config comes from the function's own environment variables.
+try:
+    import env_config  # noqa: F401
+except Exception:
+    pass
+
 # ── w3id verifier (env vars set in Lambda config) ─────────────────────────────
 ISSUER   = os.environ.get("W3ID_ISSUER",   "https://login.w3.ibm.com/oidc/endpoint/default")
 JWKS_URI = os.environ.get("W3ID_JWKS_URI", "https://login.w3.ibm.com/v1.0/endpoint/default/jwks")

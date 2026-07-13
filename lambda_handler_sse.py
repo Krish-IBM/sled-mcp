@@ -9,6 +9,13 @@ import urllib.request
 import urllib.error
 import base64
 
+# Load .env for local dev before any os.environ reads below. No-op in Lambda,
+# where config comes from the function's own environment variables.
+try:
+    import env_config  # noqa: F401
+except Exception:
+    pass
+
 # ── Config ────────────────────────────────────────────────────────────────────
 SLED_DOCS_QUERY_URL = os.environ["SLED_DOCS_QUERY_URL"]
 COGNITO_TOKEN_URL = os.environ.get("COGNITO_TOKEN_URL", "")

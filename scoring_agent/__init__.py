@@ -7,4 +7,12 @@ bids on a government procurement, through a competitive-intelligence lens.
 See scoring_agent/README.md and the approved plan for the full design.
 """
 
+# Load .env for local dev before any submodule reads os.environ. Runs first
+# because importing any scoring_agent.* module executes this __init__ first.
+# No-op in Lambda, where config comes from the function's environment variables.
+try:
+    import env_config  # noqa: F401  (project-root loader; absent in deploy pkg)
+except Exception:
+    pass
+
 __version__ = "0.1.0"
