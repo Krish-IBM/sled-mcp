@@ -1,0 +1,149 @@
+# Standard SLED base rubric (the "hybrid" default).
+#
+# Used two ways:
+#   1. As the default scheme when an RFP's evaluation section can't be parsed.
+#   2. As the starting point that rfp_scheme.py adapts per solicitation
+#      (rename / reweight / add / drop dimensions, switch method, add gates).
+#
+# Seeded from the WA State CCWIS scoresheet (16 weighted dimensions) and the
+# NC DHHS best-value criteria (Qualifications > Past-performance/Tech >
+# Conformity > Cost), generalized to dimensions common across SLED consulting
+# procurements. Weights are fractions that sum to 1.0.
+#
+# Loaded by rubric.load_base_rubric() into a SchemeSpec (project_id filled at
+# runtime). Replace with the SLED team's own rubric when provided.
+
+method: weighted_points
+cost_handling: dimension          # best-value RFPs switch this to "tradeoff"
+source: base_rubric
+
+scale:
+  type: numeric
+  min: 1
+  max: 5
+  higher_is_better: true
+  anchors:
+    "1": "Poor / Unacceptable — fails to meet the requirement; high risk."
+    "2": "Marginal — meets some elements but with significant gaps or risk."
+    "3": "Acceptable — adequately meets the requirement; moderate risk."
+    "4": "Good — fully meets and exceeds in meaningful ways; low risk."
+    "5": "Excellent — outstanding, comprehensive, differentiated; very low risk."
+
+dimensions:
+  - id: vendor_qualifications
+    name: "Vendor Qualifications & Experience"
+    weight: 0.15
+    description: >
+      Firm's corporate experience delivering comparable systems for
+      government/SLED clients; domain depth; relevant scale and tenure.
+    sub_criteria:
+      - "Relevant prior engagements of similar size and scope"
+      - "Domain / program-area expertise (e.g., health, child welfare, tax)"
+      - "Public-sector delivery track record"
+
+  - id: technical_approach
+    name: "Technical Approach & Solution Fit"
+    weight: 0.15
+    description: >
+      Soundness and completeness of the proposed solution and how well it fits
+      the stated needs; clarity, feasibility, and innovation of the approach.
+    sub_criteria:
+      - "Understanding of the requirement and problem"
+      - "Solution design quality and fit"
+      - "Innovation and use of proven accelerators / platforms"
+
+  - id: functional_requirements
+    name: "Functional Requirements Coverage"
+    weight: 0.10
+    description: >
+      Degree to which the proposal satisfies mandatory and desired functional
+      requirements (requirements-traceability coverage).
+    sub_criteria:
+      - "Coverage of mandatory requirements"
+      - "Coverage of desired requirements"
+      - "Traceability and completeness of responses"
+
+  - id: technology_architecture
+    name: "Technology & Architecture"
+    weight: 0.10
+    description: >
+      Technical architecture, platform choices, security, scalability,
+      integration, and standards conformance.
+    sub_criteria:
+      - "Architecture soundness and scalability"
+      - "Security, privacy, and compliance"
+      - "Integration and interoperability"
+
+  - id: implementation_approach
+    name: "Implementation / DDI Approach"
+    weight: 0.10
+    description: >
+      Design, development, and implementation (DDI) methodology, delivery plan,
+      schedule realism, and risk management.
+    sub_criteria:
+      - "Delivery methodology and phasing"
+      - "Schedule realism and milestones"
+      - "Risk identification and mitigation"
+
+  - id: staffing_key_personnel
+    name: "Staffing & Key Personnel"
+    weight: 0.08
+    description: >
+      Qualifications of proposed key personnel, team structure, and staffing
+      adequacy for the engagement.
+    sub_criteria:
+      - "Key personnel qualifications and relevance"
+      - "Team structure and adequacy"
+      - "Continuity and retention plan"
+
+  - id: past_performance
+    name: "Past Performance & References"
+    weight: 0.07
+    description: >
+      Demonstrated performance on prior comparable contracts; client references
+      and outcomes.
+    sub_criteria:
+      - "Verifiable references on comparable work"
+      - "Outcomes, on-time / on-budget delivery"
+      - "Any adverse past-performance signals"
+
+  - id: project_management
+    name: "Project Management & Governance"
+    weight: 0.07
+    description: >
+      Project management approach, governance, quality management, and
+      communication/reporting.
+    sub_criteria:
+      - "PM methodology and governance"
+      - "Quality management"
+      - "Status reporting and communication"
+
+  - id: maintenance_operations
+    name: "Maintenance & Operations (M&O)"
+    weight: 0.05
+    description: >
+      Post-implementation maintenance, operations, support model, and SLAs.
+    sub_criteria:
+      - "M&O / support model and SLAs"
+      - "Knowledge transfer and sustainability"
+
+  - id: data_migration_reporting
+    name: "Data Migration & Reporting"
+    weight: 0.03
+    description: >
+      Data conversion/migration approach and reporting/analytics capabilities.
+    sub_criteria:
+      - "Data migration approach and quality controls"
+      - "Reporting and analytics coverage"
+
+  - id: cost_price
+    name: "Cost / Price"
+    weight: 0.10
+    cost_related: true
+    description: >
+      Total cost of ownership and price competitiveness, evaluated against the
+      value offered (per the solicitation's cost method).
+    sub_criteria:
+      - "Total cost of ownership"
+      - "Price realism and completeness"
+      - "Value for money relative to technical merit"

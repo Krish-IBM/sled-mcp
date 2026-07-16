@@ -1,0 +1,10 @@
+# Dependencies for the SLED competitor-analysis Lambda. The zip also bundles
+# scoring_agent/ (document ingestion + Bedrock client are reused from it), so
+# its PDF stack is required here; python-pptx/openpyxl are NOT (only the
+# scoring pipeline imports those, lazily). build_competitor_package.sh installs
+# manylinux wheels so no Docker is needed.
+pdfplumber==0.11.8
+pypdf==6.14.2
+python-docx==1.1.2
+# Bundled so Bedrock Converse APIs are current (Lambda's built-in boto3 can lag).
+boto3==1.42.97

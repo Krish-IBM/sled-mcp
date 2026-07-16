@@ -89,6 +89,7 @@ BID_ANALYSIS_AGENT_URL = os.environ.get(
     "BID_ANALYSIS_AGENT_URL",
     "https://5uanpy2351.execute-api.us-east-1.amazonaws.com/",
 )
+COMPETITOR_ANALYSIS_URL = os.environ.get("COMPETITOR_ANALYSIS_URL", "")
 
 # ── Agent registry — maps agent name → backend URL, payload key, description ───
 # payload_key is the JSON field each backend expects (docs/scoring use "query";
@@ -151,6 +152,23 @@ AGENT_REGISTRY = {
             "bid", "proposal", "solicitation", "rfp", "rfq", "compliance",
             "requirements", "no", "no-bid", "pursuit", "opportunity", "analysis",
             "analyze", "deadlines", "deadline", "forms", "red", "flags",
+        ),
+    },
+    "competitor_analysis": {
+        "url": COMPETITOR_ANALYSIS_URL,
+        "payload_key": "query",
+        "description": (
+            "Analyze one competitor's bid strategy across ALL their FOIA documents "
+            "in the corpus: solutioning/technical approach, staffing, pricing, past "
+            "performance, and win themes — with implications for IBM. Async: "
+            "'analyze competitor=\"<name>\"' returns a job_id; then 'status <id>' / "
+            "'result <id>' for the report (Word + JSON downloads). 'competitors' "
+            "lists available vendors."
+        ),
+        "keywords": (
+            "competitor", "strategy", "strategies", "solutioning", "staffing",
+            "playbook", "differentiators", "themes", "profile", "positioning",
+            "analyze", "analysis", "pricing", "win",
         ),
     },
 }
