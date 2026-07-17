@@ -6,7 +6,7 @@ corpus (`s3://competitive-intelligence-sled`, organized `<Vendor>/<Procurement>/
 on five dimensions — **solutioning, staffing, pricing, past performance &
 references, win themes & differentiators** — each ending with implications for
 the focal vendor (IBM by default). Outputs a chat summary plus downloadable
-JSON and Word (DOCX) artifacts via presigned links.
+PowerPoint (PPTX), Word (DOCX), and JSON artifacts via presigned links.
 
 ## Commands (router forwards `{"query": "..."}`)
 
@@ -33,8 +33,10 @@ record in S3 + async self-invoke; auto-retry guard; stall detection).
    Textract OCR for scanned docs), deadline-aware.
 4. **Synthesize** (strong model, 1 call): cross-procurement strategy profile
    with evidence citations and focal-vendor implications.
-5. **Render** JSON + DOCX (`python-docx`, IBM Plex Sans) →
-   `s3://$CA_OUTPUT_BUCKET/competitor-analysis/outputs/<slug>/<job_id>/`.
+5. **Render** JSON + DOCX (`python-docx`) + PPTX (`python-pptx`), all
+   IBM-branded (IBM Plex Sans, IBM blue). The deck auto-paginates long
+   narratives/evidence onto continuation slides so text never overlaps. Written
+   to `s3://$CA_OUTPUT_BUCKET/competitor-analysis/outputs/<slug>/<job_id>/`.
 
 Deadline handling mirrors the scoring agent: the pipeline stops digesting
 `RENDER_MARGIN_SECONDS` (240) before the Lambda kill and synthesizes what it

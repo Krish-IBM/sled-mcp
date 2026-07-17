@@ -25,6 +25,7 @@ from competitor_analysis.models import (
 from competitor_analysis.pipeline import _findings_from_synthesis
 from competitor_analysis.render_docx import render_docx
 from competitor_analysis.render_json import render_json
+from competitor_analysis.render_pptx import render_pptx
 
 
 def test_parse():
@@ -114,7 +115,87 @@ def test_renderers():
         texts = "\n".join(p.text for p in Document(dpath).paragraphs)
         assert "Acme Corp" in texts and "Implications for IBM" in texts
         assert "Notes & Limitations" in texts
+
+        ppath = render_pptx(analysis, os.path.join(td, "a.pptx"))
+        from pptx import Presentation
+
+        prs = Presentation(ppath)
+        deck_text = "\n".join(
+            shp.text_frame.text
+            for slide in prs.slides
+            for shp in slide.shapes
+            if shp.has_text_frame
+        )
+        assert "Acme Corp" in deck_text
+        assert "Competitor Bid-Strategy Analysis" in deck_text
+        assert "Executive Summary" in deck_text
+        assert "Implications for IBM" in deck_text
+        # title + summary + glance + 5 dimensions + appendix + notes
+        assert len(prs.slides._sldIdLst) >= 9
     print("[PASS] renderers")
+
+
+def _flowed_boxes_by_slide(prs):
+    """Content boxes (below the title band) per slide, as (top, bottom) inches."""
+    out = []
+    for slide in prs.slides:
+        boxes = []
+        for shp in slide.shapes:
+            top = shp.top / 914400.0
+            height = (shp.height or 0) / 914400.0
+            if top >= 1.4:                      # skip accent bar / title / subtitle
+                boxes.append((top, top + height))
+        out.append(sorted(boxes))
+    return out
+
+
+def test_pptx_no_overlap():
+    """Long content must paginate; flowed boxes must never overlap or run off-slide."""
+    from pptx import Presentation
+
+    long_para = ("This vendor consistently leads with a platform-first message. " * 40)
+    analysis = CompetitorAnalysis(
+        competitor="Verbose Vendor LLC",
+        focal="IBM",
+        executive_summary="\n\n".join([long_para, long_para]),
+        dimensions=[
+            DimensionFinding(
+                key=key, title=spec["title"],
+                analysis=long_para + "\n\n" + long_para,
+                evidence=[
+                    EvidenceItem(procurement=f"Procurement {n}",
+                                 detail="A specific, sourced fact that is fairly long. " * 4)
+                    for n in range(12)
+                ],
+                ibm_implications=("IBM should counter aggressively across every front. " * 12),
+            )
+            for key, spec in DIMENSIONS.items()
+        ],
+        procurement_digests=[
+            ProcurementDigest(procurement=f"Procurement {n}", client=f"State {n}",
+                              year="2021", outcome="won", source_docs=["a.pdf", "b.pdf"])
+            for n in range(30)
+        ],
+        docs_analyzed=60,
+        warnings=[f"warning number {n} about coverage that is reasonably long" for n in range(8)],
+    )
+    with tempfile.TemporaryDirectory() as td:
+        ppath = render_pptx(analysis, os.path.join(td, "long.pptx"))
+        prs = Presentation(ppath)
+
+        # Pagination kicked in: far more slides than the base structure.
+        assert len(prs.slides._sldIdLst) > 12
+
+        for si, boxes in enumerate(_flowed_boxes_by_slide(prs)):
+            prev_bottom = 0.0
+            for top, bottom in boxes:
+                # no flowed box may run off the bottom of the 7.5" slide
+                assert bottom <= 7.5 + 1e-6, f"slide {si}: box bottom {bottom} off-slide"
+                # boxes are stacked: each starts at/after the previous one's bottom
+                assert top >= prev_bottom - 0.03, (
+                    f"slide {si}: overlap (top {top} < prev bottom {prev_bottom})")
+                prev_bottom = bottom
+    print("[PASS] pptx pagination + no overlap")
 
 
 def test_findings_from_synthesis():
@@ -147,5 +228,6 @@ if __name__ == "__main__":
     test_stalled()
     test_priority_and_normalize()
     test_renderers()
+    test_pptx_no_overlap()
     test_findings_from_synthesis()
     print("ALL PASS")

@@ -114,10 +114,11 @@ def main():
     assert all(d.ibm_implications for d in a.dimensions)
 
     # artifacts uploaded to the output bucket
-    assert set(out.artifacts) == {"json", "docx"}, out.artifacts
+    assert set(out.artifacts) == {"json", "docx", "pptx"}, out.artifacts
     data = json.loads(s3.uploaded[out.artifacts["json"]])
     assert data["competitor"] == "Acme Corp"
     assert s3.uploaded[out.artifacts["docx"]][:2] == b"PK"  # zip magic = valid docx
+    assert s3.uploaded[out.artifacts["pptx"]][:2] == b"PK"  # zip magic = valid pptx
 
     # ambiguity / miss paths
     try:

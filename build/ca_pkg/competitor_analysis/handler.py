@@ -13,7 +13,7 @@ scoring agent:
 
 An "analyze" request writes a job record to S3 and self-invokes this Lambda
 asynchronously (InvocationType=Event). The async pass runs the pipeline,
-updating the job record at every step, and stores JSON/DOCX in S3.
+updating the job record at every step, and stores JSON/DOCX/PPTX in S3.
 """
 
 from __future__ import annotations
@@ -163,7 +163,7 @@ _HELP = (
     '  analyze competitor="<name>" [procurement="<name>"] [focal=IBM]\n'
     "      — start an analysis (competitor name matches a vendor folder in the corpus)\n"
     "  status <job_id>      — check progress\n"
-    "  result <job_id>      — summary + JSON/DOCX download links\n"
+    "  result <job_id>      — summary + PPTX/DOCX/JSON download links\n"
     "  competitors          — list vendors available in the FOIA corpus\n"
     "Large competitors take several minutes; scope with procurement=\"...\" to go faster."
 )
@@ -263,11 +263,15 @@ def _result(job_id: str) -> Dict[str, Any]:
 
     s3 = _s3()
     outputs = job.get("outputs") or {}
-    labels = {"docx": "WORD REPORT (DOCX)", "json": "FULL ANALYSIS (JSON)"}
-    ordered = [k for k in ("docx", "json") if k in outputs]
+    labels = {
+        "pptx": "POWERPOINT DECK (PPTX)",
+        "docx": "WORD REPORT (DOCX)",
+        "json": "FULL ANALYSIS (JSON)",
+    }
+    ordered = [k for k in ("pptx", "docx", "json") if k in outputs]
     ordered.extend(k for k in outputs if k not in labels)
     if ordered:
-        lines += ["", "Downloads (links expire; Word report is listed first):"]
+        lines += ["", "Downloads (links expire; PowerPoint and Word reports are listed first):"]
         for kind in ordered:
             lines.append(f"  {labels.get(kind, kind.upper())}: {_presign(outputs[kind], s3)}")
     return _respond("\n".join(lines))

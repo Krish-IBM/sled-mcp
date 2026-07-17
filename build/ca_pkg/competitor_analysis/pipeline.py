@@ -32,6 +32,7 @@ from .models import (
 )
 from .render_docx import render_docx
 from .render_json import render_json
+from .render_pptx import render_pptx
 
 # Budget knobs (env-tunable). Chars, not tokens: ~4 chars/token, so 150k chars
 # keeps each digest call well inside the model's context window.
@@ -288,7 +289,7 @@ def run_analysis(
     analysis.executive_summary = str(raw.get("executive_summary", "") or "")
     analysis.dimensions = _findings_from_synthesis(raw)
 
-    progress("render", "Rendering JSON + DOCX report")
+    progress("render", "Rendering JSON + DOCX + PPTX report")
     artifacts: Dict[str, str] = {}
     json_local = "/tmp/competitor_analysis.json"
     render_json(analysis, json_local)
@@ -304,6 +305,17 @@ def run_analysis(
         artifacts["docx"] = docx_key
     except Exception as exc:  # noqa: BLE001 — report rendering must not void the analysis
         analysis.warnings.append(f"DOCX report failed to render ({exc}); JSON is complete.")
+
+    # Each renderer is guarded independently so one format failing never voids
+    # the others (or the analysis itself).
+    try:
+        pptx_local = "/tmp/competitor_analysis.pptx"
+        render_pptx(analysis, pptx_local)
+        pptx_key = f"{out_prefix}competitor_analysis.pptx"
+        s3.upload_file(pptx_local, out_bucket, pptx_key)
+        artifacts["pptx"] = pptx_key
+    except Exception as exc:  # noqa: BLE001 — report rendering must not void the analysis
+        analysis.warnings.append(f"PPTX deck failed to render ({exc}); JSON is complete.")
 
     return AnalysisOutput(analysis=analysis, artifacts=artifacts)
 
