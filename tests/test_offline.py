@@ -240,9 +240,13 @@ def test_render_deck():
     render_pptx(result, path, deck_content=content)
     assert os.path.getsize(path) > 0
     from pptx import Presentation
+    from pptx.util import Inches
 
     prs = Presentation(path)
-    assert len(prs.slides) == 7, len(prs.slides)
+    slide_w, slide_h = prs.slide_width, prs.slide_height
+    # The deck paginates large tables across continuation slides, so the count
+    # grows with dimensions/vendors — but must always cover the core sections.
+    assert len(prs.slides) >= 7, len(prs.slides)
 
     def slide_text(slide):
         parts = []
@@ -263,6 +267,24 @@ def test_render_deck():
     assert "SLED Competitive Intelligence" in all_text, "footer/branding lost"
     assert "RFQ-DEMO-2025-01" in all_text and "$5,800,000" in all_text
     assert "Very strong" in all_text or "Weak" in all_text, "RAG adjectives missing"
+
+    # COMPLETENESS: every dimension, every vendor, and the totals rows must
+    # actually appear somewhere in the deck (the bug this guards against was
+    # rows being clipped off the bottom of an over-stuffed slide).
+    for dim in result.scheme.dimensions:
+        assert dim.name in all_text, f"dimension clipped from deck: {dim.name}"
+    for v in result.vendors:
+        assert v.vendor in all_text, f"vendor clipped from deck: {v.vendor}"
+    for totals in ("Normalized Total", "Rank"):
+        assert totals in all_text, f"totals row missing from deck: {totals}"
+
+    # NO OVERFLOW: no table may extend past the visible slide area, or its lower
+    # rows are silently clipped when the deck is opened/presented.
+    for si, slide in enumerate(prs.slides, 1):
+        for sh in slide.shapes:
+            if getattr(sh, "has_table", False):
+                assert sh.left + sh.width <= slide_w + Inches(0.05), f"slide {si}: table over right edge"
+                assert sh.top + sh.height <= slide_h + Inches(0.05), f"slide {si}: table over bottom edge"
     print("  deck:", path, "| slides:", len(prs.slides))
 
 

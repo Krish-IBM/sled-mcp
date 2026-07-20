@@ -469,33 +469,33 @@ FPDF_ANNOT_APPEARANCEMODE = c_int
 # ./fpdfview.h: 204
 FPDF_OBJECT_TYPE = c_int
 
-# ./fpdfview.h: 244
+# ./fpdfview.h: 238
 enum_anon_3 = c_int
 
-# ./fpdfview.h: 244
+# ./fpdfview.h: 238
 FPDF_RENDERERTYPE_AGG = 0
 
-# ./fpdfview.h: 244
+# ./fpdfview.h: 238
 FPDF_RENDERERTYPE_SKIA = 1
 
-# ./fpdfview.h: 244
+# ./fpdfview.h: 238
 FPDF_RENDERER_TYPE = enum_anon_3
 
-# ./fpdfview.h: 253
+# ./fpdfview.h: 247
 enum_anon_4 = c_int
 
-# ./fpdfview.h: 253
+# ./fpdfview.h: 247
 FPDF_FONTBACKENDTYPE_FREETYPE = 0
 
-# ./fpdfview.h: 253
+# ./fpdfview.h: 247
 FPDF_FONTBACKENDTYPE_FONTATIONS = 1
 
-# ./fpdfview.h: 253
+# ./fpdfview.h: 247
 FPDF_FONT_BACKEND_TYPE = enum_anon_4
 
-# ./fpdfview.h: 305
+# ./fpdfview.h: 306
 class struct_FPDF_LIBRARY_CONFIG_ (Structure):
-    __slots__ = ('version', 'm_pUserFontPaths', 'm_pIsolate', 'm_v8EmbedderSlot', 'm_pPlatform', 'm_RendererType', 'm_FontLibraryType')
+    __slots__ = ('version', 'm_pUserFontPaths', 'm_pIsolate', 'm_v8EmbedderSlot', 'm_pPlatform', 'm_RendererType', 'm_FontLibraryType', 'm_BrotliEnabled')
 
 struct_FPDF_LIBRARY_CONFIG_._fields_ = (
     ('version', c_int),
@@ -505,47 +505,48 @@ struct_FPDF_LIBRARY_CONFIG_._fields_ = (
     ('m_pPlatform', POINTER(None)),
     ('m_RendererType', FPDF_RENDERER_TYPE),
     ('m_FontLibraryType', FPDF_FONT_BACKEND_TYPE),
+    ('m_BrotliEnabled', FPDF_BOOL),
 )
 
-# ./fpdfview.h: 305
+# ./fpdfview.h: 306
 FPDF_LIBRARY_CONFIG = struct_FPDF_LIBRARY_CONFIG_
 
-# ./fpdfview.h: 317
+# ./fpdfview.h: 318
 FPDF_InitLibraryWithConfig = _libs['pdfium']['FPDF_InitLibraryWithConfig']
 FPDF_InitLibraryWithConfig.argtypes = (POINTER(FPDF_LIBRARY_CONFIG), )
 FPDF_InitLibraryWithConfig.restype = None
 
-# ./fpdfview.h: 330
+# ./fpdfview.h: 331
 FPDF_InitLibrary = _libs['pdfium']['FPDF_InitLibrary']
 FPDF_InitLibrary.argtypes = ()
 FPDF_InitLibrary.restype = None
 
-# ./fpdfview.h: 346
+# ./fpdfview.h: 347
 FPDF_DestroyLibrary = _libs['pdfium']['FPDF_DestroyLibrary']
 FPDF_DestroyLibrary.argtypes = ()
 FPDF_DestroyLibrary.restype = None
 
-# ./fpdfview.h: 359
+# ./fpdfview.h: 360
 FPDF_SetSandBoxPolicy = _libs['pdfium']['FPDF_SetSandBoxPolicy']
 FPDF_SetSandBoxPolicy.argtypes = (FPDF_DWORD, FPDF_BOOL)
 FPDF_SetSandBoxPolicy.restype = None
 
-# ./fpdfview.h: 413
+# ./fpdfview.h: 414
 FPDF_LoadDocument = _libs['pdfium']['FPDF_LoadDocument']
 FPDF_LoadDocument.argtypes = (FPDF_STRING, FPDF_BYTESTRING)
 FPDF_LoadDocument.restype = FPDF_DOCUMENT
 
-# ./fpdfview.h: 437
+# ./fpdfview.h: 438
 FPDF_LoadMemDocument = _libs['pdfium']['FPDF_LoadMemDocument']
 FPDF_LoadMemDocument.argtypes = (POINTER(None), c_int, FPDF_BYTESTRING)
 FPDF_LoadMemDocument.restype = FPDF_DOCUMENT
 
-# ./fpdfview.h: 462
+# ./fpdfview.h: 463
 FPDF_LoadMemDocument64 = _libs['pdfium']['FPDF_LoadMemDocument64']
 FPDF_LoadMemDocument64.argtypes = (POINTER(None), c_size_t, FPDF_BYTESTRING)
 FPDF_LoadMemDocument64.restype = FPDF_DOCUMENT
 
-# ./fpdfview.h: 486
+# ./fpdfview.h: 487
 class struct_anon_5 (Structure):
     __slots__ = ('m_FileLen', 'm_GetBlock', 'm_Param')
 
@@ -555,10 +556,10 @@ struct_anon_5._fields_ = (
     ('m_Param', POINTER(None)),
 )
 
-# ./fpdfview.h: 486
+# ./fpdfview.h: 487
 FPDF_FILEACCESS = struct_anon_5
 
-# ./fpdfview.h: 566
+# ./fpdfview.h: 567
 class struct_FPDF_FILEHANDLER_ (Structure):
     __slots__ = ('clientData', 'Release', 'GetSize', 'ReadBlock', 'WriteBlock', 'Flush', 'Truncate')
 
@@ -572,95 +573,95 @@ struct_FPDF_FILEHANDLER_._fields_ = (
     ('Truncate', CFUNCTYPE(UNCHECKED(FPDF_RESULT), POINTER(None), FPDF_DWORD)),
 )
 
-# ./fpdfview.h: 566
+# ./fpdfview.h: 567
 FPDF_FILEHANDLER = struct_FPDF_FILEHANDLER_
 
-# ./fpdfview.h: 589
+# ./fpdfview.h: 590
 FPDF_LoadCustomDocument = _libs['pdfium']['FPDF_LoadCustomDocument']
 FPDF_LoadCustomDocument.argtypes = (POINTER(FPDF_FILEACCESS), FPDF_BYTESTRING)
 FPDF_LoadCustomDocument.restype = FPDF_DOCUMENT
 
-# ./fpdfview.h: 602
+# ./fpdfview.h: 603
 FPDF_GetFileVersion = _libs['pdfium']['FPDF_GetFileVersion']
 FPDF_GetFileVersion.argtypes = (FPDF_DOCUMENT, POINTER(c_int))
 FPDF_GetFileVersion.restype = FPDF_BOOL
 
-# ./fpdfview.h: 627
+# ./fpdfview.h: 628
 FPDF_GetLastError = _libs['pdfium']['FPDF_GetLastError']
 FPDF_GetLastError.argtypes = ()
 FPDF_GetLastError.restype = c_ulong
 
-# ./fpdfview.h: 642
+# ./fpdfview.h: 643
 FPDF_DocumentHasValidCrossReferenceTable = _libs['pdfium']['FPDF_DocumentHasValidCrossReferenceTable']
 FPDF_DocumentHasValidCrossReferenceTable.argtypes = (FPDF_DOCUMENT, )
 FPDF_DocumentHasValidCrossReferenceTable.restype = FPDF_BOOL
 
-# ./fpdfview.h: 659
+# ./fpdfview.h: 660
 FPDF_GetTrailerEnds = _libs['pdfium']['FPDF_GetTrailerEnds']
 FPDF_GetTrailerEnds.argtypes = (FPDF_DOCUMENT, POINTER(c_uint), c_ulong)
 FPDF_GetTrailerEnds.restype = c_ulong
 
-# ./fpdfview.h: 672
+# ./fpdfview.h: 673
 FPDF_GetDocPermissions = _libs['pdfium']['FPDF_GetDocPermissions']
 FPDF_GetDocPermissions.argtypes = (FPDF_DOCUMENT, )
 FPDF_GetDocPermissions.restype = c_ulong
 
-# ./fpdfview.h: 684
+# ./fpdfview.h: 685
 FPDF_GetDocUserPermissions = _libs['pdfium']['FPDF_GetDocUserPermissions']
 FPDF_GetDocUserPermissions.argtypes = (FPDF_DOCUMENT, )
 FPDF_GetDocUserPermissions.restype = c_ulong
 
-# ./fpdfview.h: 695
+# ./fpdfview.h: 696
 FPDF_GetSecurityHandlerRevision = _libs['pdfium']['FPDF_GetSecurityHandlerRevision']
 FPDF_GetSecurityHandlerRevision.argtypes = (FPDF_DOCUMENT, )
 FPDF_GetSecurityHandlerRevision.restype = c_int
 
-# ./fpdfview.h: 703
+# ./fpdfview.h: 704
 FPDF_GetPageCount = _libs['pdfium']['FPDF_GetPageCount']
 FPDF_GetPageCount.argtypes = (FPDF_DOCUMENT, )
 FPDF_GetPageCount.restype = c_int
 
-# ./fpdfview.h: 715
+# ./fpdfview.h: 716
 FPDF_LoadPage = _libs['pdfium']['FPDF_LoadPage']
 FPDF_LoadPage.argtypes = (FPDF_DOCUMENT, c_int)
 FPDF_LoadPage.restype = FPDF_PAGE
 
-# ./fpdfview.h: 728
+# ./fpdfview.h: 729
 FPDF_GetPageWidthF = _libs['pdfium']['FPDF_GetPageWidthF']
 FPDF_GetPageWidthF.argtypes = (FPDF_PAGE, )
 FPDF_GetPageWidthF.restype = c_float
 
-# ./fpdfview.h: 742
+# ./fpdfview.h: 743
 FPDF_GetPageWidth = _libs['pdfium']['FPDF_GetPageWidth']
 FPDF_GetPageWidth.argtypes = (FPDF_PAGE, )
 FPDF_GetPageWidth.restype = c_double
 
-# ./fpdfview.h: 754
+# ./fpdfview.h: 755
 FPDF_GetPageHeightF = _libs['pdfium']['FPDF_GetPageHeightF']
 FPDF_GetPageHeightF.argtypes = (FPDF_PAGE, )
 FPDF_GetPageHeightF.restype = c_float
 
-# ./fpdfview.h: 768
+# ./fpdfview.h: 769
 FPDF_GetPageHeight = _libs['pdfium']['FPDF_GetPageHeight']
 FPDF_GetPageHeight.argtypes = (FPDF_PAGE, )
 FPDF_GetPageHeight.restype = c_double
 
-# ./fpdfview.h: 780
+# ./fpdfview.h: 781
 FPDF_GetPageBoundingBox = _libs['pdfium']['FPDF_GetPageBoundingBox']
 FPDF_GetPageBoundingBox.argtypes = (FPDF_PAGE, POINTER(FS_RECTF))
 FPDF_GetPageBoundingBox.restype = FPDF_BOOL
 
-# ./fpdfview.h: 794
+# ./fpdfview.h: 795
 FPDF_GetPageSizeByIndexF = _libs['pdfium']['FPDF_GetPageSizeByIndexF']
 FPDF_GetPageSizeByIndexF.argtypes = (FPDF_DOCUMENT, c_int, POINTER(FS_SIZEF))
 FPDF_GetPageSizeByIndexF.restype = FPDF_BOOL
 
-# ./fpdfview.h: 812
+# ./fpdfview.h: 813
 FPDF_GetPageSizeByIndex = _libs['pdfium']['FPDF_GetPageSizeByIndex']
 FPDF_GetPageSizeByIndex.argtypes = (FPDF_DOCUMENT, c_int, POINTER(c_double), POINTER(c_double))
 FPDF_GetPageSizeByIndex.restype = c_int
 
-# ./fpdfview.h: 846
+# ./fpdfview.h: 847
 class struct_FPDF_COLORSCHEME_ (Structure):
     __slots__ = ('path_fill_color', 'path_stroke_color', 'text_fill_color', 'text_stroke_color')
 
@@ -671,145 +672,145 @@ struct_FPDF_COLORSCHEME_._fields_ = (
     ('text_stroke_color', FPDF_DWORD),
 )
 
-# ./fpdfview.h: 846
+# ./fpdfview.h: 847
 FPDF_COLORSCHEME = struct_FPDF_COLORSCHEME_
 
-# ./fpdfview.h: 921
+# ./fpdfview.h: 922
 FPDF_RenderPageBitmap = _libs['pdfium']['FPDF_RenderPageBitmap']
 FPDF_RenderPageBitmap.argtypes = (FPDF_BITMAP, FPDF_PAGE, c_int, c_int, c_int, c_int, c_int, c_int)
 FPDF_RenderPageBitmap.restype = None
 
-# ./fpdfview.h: 949
+# ./fpdfview.h: 950
 FPDF_RenderPageBitmapWithMatrix = _libs['pdfium']['FPDF_RenderPageBitmapWithMatrix']
 FPDF_RenderPageBitmapWithMatrix.argtypes = (FPDF_BITMAP, FPDF_PAGE, POINTER(FS_MATRIX), POINTER(FS_RECTF), c_int)
 FPDF_RenderPageBitmapWithMatrix.restype = None
 
-# ./fpdfview.h: 978
+# ./fpdfview.h: 979
 FPDF_ClosePage = _libs['pdfium']['FPDF_ClosePage']
 FPDF_ClosePage.argtypes = (FPDF_PAGE, )
 FPDF_ClosePage.restype = None
 
-# ./fpdfview.h: 986
+# ./fpdfview.h: 987
 FPDF_CloseDocument = _libs['pdfium']['FPDF_CloseDocument']
 FPDF_CloseDocument.argtypes = (FPDF_DOCUMENT, )
 FPDF_CloseDocument.restype = None
 
-# ./fpdfview.h: 1029
+# ./fpdfview.h: 1030
 FPDF_DeviceToPage = _libs['pdfium']['FPDF_DeviceToPage']
 FPDF_DeviceToPage.argtypes = (FPDF_PAGE, c_int, c_int, c_int, c_int, c_int, c_int, c_int, POINTER(c_double), POINTER(c_double))
 FPDF_DeviceToPage.restype = FPDF_BOOL
 
-# ./fpdfview.h: 1066
+# ./fpdfview.h: 1067
 FPDF_PageToDevice = _libs['pdfium']['FPDF_PageToDevice']
 FPDF_PageToDevice.argtypes = (FPDF_PAGE, c_int, c_int, c_int, c_int, c_int, c_double, c_double, POINTER(c_int), POINTER(c_int))
 FPDF_PageToDevice.restype = FPDF_BOOL
 
-# ./fpdfview.h: 1107
+# ./fpdfview.h: 1108
 FPDFBitmap_Create = _libs['pdfium']['FPDFBitmap_Create']
 FPDFBitmap_Create.argtypes = (c_int, c_int, c_int)
 FPDFBitmap_Create.restype = FPDF_BITMAP
 
-# ./fpdfview.h: 1163
+# ./fpdfview.h: 1164
 FPDFBitmap_CreateEx = _libs['pdfium']['FPDFBitmap_CreateEx']
 FPDFBitmap_CreateEx.argtypes = (c_int, c_int, c_int, POINTER(None), c_int)
 FPDFBitmap_CreateEx.restype = FPDF_BITMAP
 
-# ./fpdfview.h: 1179
+# ./fpdfview.h: 1180
 FPDFBitmap_GetFormat = _libs['pdfium']['FPDFBitmap_GetFormat']
 FPDFBitmap_GetFormat.argtypes = (FPDF_BITMAP, )
 FPDFBitmap_GetFormat.restype = c_int
 
-# ./fpdfview.h: 1205
+# ./fpdfview.h: 1206
 FPDFBitmap_FillRect = _libs['pdfium']['FPDFBitmap_FillRect']
 FPDFBitmap_FillRect.argtypes = (FPDF_BITMAP, c_int, c_int, c_int, c_int, FPDF_DWORD)
 FPDFBitmap_FillRect.restype = FPDF_BOOL
 
-# ./fpdfview.h: 1227
+# ./fpdfview.h: 1228
 FPDFBitmap_GetBuffer = _libs['pdfium']['FPDFBitmap_GetBuffer']
 FPDFBitmap_GetBuffer.argtypes = (FPDF_BITMAP, )
 FPDFBitmap_GetBuffer.restype = POINTER(None)
 
-# ./fpdfview.h: 1236
+# ./fpdfview.h: 1237
 FPDFBitmap_GetWidth = _libs['pdfium']['FPDFBitmap_GetWidth']
 FPDFBitmap_GetWidth.argtypes = (FPDF_BITMAP, )
 FPDFBitmap_GetWidth.restype = c_int
 
-# ./fpdfview.h: 1245
+# ./fpdfview.h: 1246
 FPDFBitmap_GetHeight = _libs['pdfium']['FPDFBitmap_GetHeight']
 FPDFBitmap_GetHeight.argtypes = (FPDF_BITMAP, )
 FPDFBitmap_GetHeight.restype = c_int
 
-# ./fpdfview.h: 1256
+# ./fpdfview.h: 1257
 FPDFBitmap_GetStride = _libs['pdfium']['FPDFBitmap_GetStride']
 FPDFBitmap_GetStride.argtypes = (FPDF_BITMAP, )
 FPDFBitmap_GetStride.restype = c_int
 
-# ./fpdfview.h: 1268
+# ./fpdfview.h: 1269
 FPDFBitmap_Destroy = _libs['pdfium']['FPDFBitmap_Destroy']
 FPDFBitmap_Destroy.argtypes = (FPDF_BITMAP, )
 FPDFBitmap_Destroy.restype = None
 
-# ./fpdfview.h: 1277
+# ./fpdfview.h: 1278
 FPDF_VIEWERREF_GetPrintScaling = _libs['pdfium']['FPDF_VIEWERREF_GetPrintScaling']
 FPDF_VIEWERREF_GetPrintScaling.argtypes = (FPDF_DOCUMENT, )
 FPDF_VIEWERREF_GetPrintScaling.restype = FPDF_BOOL
 
-# ./fpdfview.h: 1286
+# ./fpdfview.h: 1287
 FPDF_VIEWERREF_GetNumCopies = _libs['pdfium']['FPDF_VIEWERREF_GetNumCopies']
 FPDF_VIEWERREF_GetNumCopies.argtypes = (FPDF_DOCUMENT, )
 FPDF_VIEWERREF_GetNumCopies.restype = c_int
 
-# ./fpdfview.h: 1295
+# ./fpdfview.h: 1296
 FPDF_VIEWERREF_GetPrintPageRange = _libs['pdfium']['FPDF_VIEWERREF_GetPrintPageRange']
 FPDF_VIEWERREF_GetPrintPageRange.argtypes = (FPDF_DOCUMENT, )
 FPDF_VIEWERREF_GetPrintPageRange.restype = FPDF_PAGERANGE
 
-# ./fpdfview.h: 1305
+# ./fpdfview.h: 1306
 FPDF_VIEWERREF_GetPrintPageRangeCount = _libs['pdfium']['FPDF_VIEWERREF_GetPrintPageRangeCount']
 FPDF_VIEWERREF_GetPrintPageRangeCount.argtypes = (FPDF_PAGERANGE, )
 FPDF_VIEWERREF_GetPrintPageRangeCount.restype = c_size_t
 
-# ./fpdfview.h: 1317
+# ./fpdfview.h: 1318
 FPDF_VIEWERREF_GetPrintPageRangeElement = _libs['pdfium']['FPDF_VIEWERREF_GetPrintPageRangeElement']
 FPDF_VIEWERREF_GetPrintPageRangeElement.argtypes = (FPDF_PAGERANGE, c_size_t)
 FPDF_VIEWERREF_GetPrintPageRangeElement.restype = c_int
 
-# ./fpdfview.h: 1327
+# ./fpdfview.h: 1328
 FPDF_VIEWERREF_GetDuplex = _libs['pdfium']['FPDF_VIEWERREF_GetDuplex']
 FPDF_VIEWERREF_GetDuplex.argtypes = (FPDF_DOCUMENT, )
 FPDF_VIEWERREF_GetDuplex.restype = FPDF_DUPLEXTYPE
 
-# ./fpdfview.h: 1345
+# ./fpdfview.h: 1346
 FPDF_VIEWERREF_GetName = _libs['pdfium']['FPDF_VIEWERREF_GetName']
 FPDF_VIEWERREF_GetName.argtypes = (FPDF_DOCUMENT, FPDF_BYTESTRING, POINTER(c_char), c_ulong)
 FPDF_VIEWERREF_GetName.restype = c_ulong
 
-# ./fpdfview.h: 1357
+# ./fpdfview.h: 1358
 FPDF_CountNamedDests = _libs['pdfium']['FPDF_CountNamedDests']
 FPDF_CountNamedDests.argtypes = (FPDF_DOCUMENT, )
 FPDF_CountNamedDests.restype = FPDF_DWORD
 
-# ./fpdfview.h: 1367
+# ./fpdfview.h: 1368
 FPDF_GetNamedDestByName = _libs['pdfium']['FPDF_GetNamedDestByName']
 FPDF_GetNamedDestByName.argtypes = (FPDF_DOCUMENT, FPDF_BYTESTRING)
 FPDF_GetNamedDestByName.restype = FPDF_DEST
 
-# ./fpdfview.h: 1390
+# ./fpdfview.h: 1391
 FPDF_GetNamedDest = _libs['pdfium']['FPDF_GetNamedDest']
 FPDF_GetNamedDest.argtypes = (FPDF_DOCUMENT, c_int, POINTER(None), POINTER(c_long))
 FPDF_GetNamedDest.restype = FPDF_DEST
 
-# ./fpdfview.h: 1402
+# ./fpdfview.h: 1403
 FPDF_GetXFAPacketCount = _libs['pdfium']['FPDF_GetXFAPacketCount']
 FPDF_GetXFAPacketCount.argtypes = (FPDF_DOCUMENT, )
 FPDF_GetXFAPacketCount.restype = c_int
 
-# ./fpdfview.h: 1420
+# ./fpdfview.h: 1421
 FPDF_GetXFAPacketName = _libs['pdfium']['FPDF_GetXFAPacketName']
 FPDF_GetXFAPacketName.argtypes = (FPDF_DOCUMENT, c_int, POINTER(None), c_ulong)
 FPDF_GetXFAPacketName.restype = c_ulong
 
-# ./fpdfview.h: 1447
+# ./fpdfview.h: 1448
 FPDF_GetXFAPacketContent = _libs['pdfium']['FPDF_GetXFAPacketContent']
 FPDF_GetXFAPacketContent.argtypes = (FPDF_DOCUMENT, c_int, POINTER(None), c_ulong, POINTER(c_ulong))
 FPDF_GetXFAPacketContent.restype = FPDF_BOOL
@@ -3689,88 +3690,88 @@ FPDF_OBJECT_NULLOBJ = 8
 # ./fpdfview.h: 45
 FPDF_OBJECT_REFERENCE = 9
 
-# ./fpdfview.h: 346
+# ./fpdfview.h: 347
 FPDF_POLICY_MACHINETIME_ACCESS = 0
 
-# ./fpdfview.h: 602
+# ./fpdfview.h: 603
 FPDF_ERR_SUCCESS = 0
 
-# ./fpdfview.h: 603
+# ./fpdfview.h: 604
 FPDF_ERR_UNKNOWN = 1
 
-# ./fpdfview.h: 604
+# ./fpdfview.h: 605
 FPDF_ERR_FILE = 2
 
-# ./fpdfview.h: 605
+# ./fpdfview.h: 606
 FPDF_ERR_FORMAT = 3
 
-# ./fpdfview.h: 606
+# ./fpdfview.h: 607
 FPDF_ERR_PASSWORD = 4
 
-# ./fpdfview.h: 607
+# ./fpdfview.h: 608
 FPDF_ERR_SECURITY = 5
 
-# ./fpdfview.h: 608
+# ./fpdfview.h: 609
 FPDF_ERR_PAGE = 6
 
-# ./fpdfview.h: 812
+# ./fpdfview.h: 813
 FPDF_ANNOT = 0x01
 
-# ./fpdfview.h: 813
+# ./fpdfview.h: 814
 FPDF_LCD_TEXT = 0x02
 
-# ./fpdfview.h: 814
+# ./fpdfview.h: 815
 FPDF_NO_NATIVETEXT = 0x04
 
-# ./fpdfview.h: 815
+# ./fpdfview.h: 816
 FPDF_GRAYSCALE = 0x08
 
-# ./fpdfview.h: 816
+# ./fpdfview.h: 817
 FPDF_DEBUG_INFO = 0x80
 
-# ./fpdfview.h: 817
+# ./fpdfview.h: 818
 FPDF_NO_CATCH = 0x100
 
-# ./fpdfview.h: 818
+# ./fpdfview.h: 819
 FPDF_RENDER_LIMITEDIMAGECACHE = 0x200
 
-# ./fpdfview.h: 819
+# ./fpdfview.h: 820
 FPDF_RENDER_FORCEHALFTONE = 0x400
 
-# ./fpdfview.h: 820
+# ./fpdfview.h: 821
 FPDF_PRINTING = 0x800
 
-# ./fpdfview.h: 821
+# ./fpdfview.h: 822
 FPDF_RENDER_NO_SMOOTHTEXT = 0x1000
 
-# ./fpdfview.h: 822
+# ./fpdfview.h: 823
 FPDF_RENDER_NO_SMOOTHIMAGE = 0x2000
 
-# ./fpdfview.h: 823
+# ./fpdfview.h: 824
 FPDF_RENDER_NO_SMOOTHPATH = 0x4000
 
-# ./fpdfview.h: 824
+# ./fpdfview.h: 825
 FPDF_REVERSE_BYTE_ORDER = 0x10
 
-# ./fpdfview.h: 825
+# ./fpdfview.h: 826
 FPDF_CONVERT_FILL_TO_STROKE = 0x20
 
-# ./fpdfview.h: 1107
+# ./fpdfview.h: 1108
 FPDFBitmap_Unknown = 0
 
-# ./fpdfview.h: 1108
+# ./fpdfview.h: 1109
 FPDFBitmap_Gray = 1
 
-# ./fpdfview.h: 1109
+# ./fpdfview.h: 1110
 FPDFBitmap_BGR = 2
 
-# ./fpdfview.h: 1110
+# ./fpdfview.h: 1111
 FPDFBitmap_BGRx = 3
 
-# ./fpdfview.h: 1111
+# ./fpdfview.h: 1112
 FPDFBitmap_BGRA = 4
 
-# ./fpdfview.h: 1112
+# ./fpdfview.h: 1113
 FPDFBitmap_BGRA_Premul = 5
 
 # ./fpdf_formfill.h: 2

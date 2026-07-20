@@ -202,6 +202,61 @@ def _clamp(v, lo, hi):
     return max(lo, min(hi, v))
 
 
+# ── pagination ───────────────────────────────────────────────────────────── #
+# Tables must end above the footer (7.15") or their lower rows are clipped off
+# the visible slide even though the data is present in the JSON. We give each
+# row a comfortable height and split dimensions/vendors across continuation
+# slides so every dimension, vendor, and totals row is actually shown.
+_BODY_BOTTOM = 7.0
+
+
+def _chunk(seq: list, size: int) -> List[list]:
+    size = max(1, int(size))
+    out = [seq[i:i + size] for i in range(0, len(seq), size)]
+    return out or [[]]
+
+
+def _even_chunk(seq: list, max_size: int) -> List[list]:
+    """Split ``seq`` into as few pages as needed (each ≤ ``max_size``), balancing
+    sizes so we never leave a near-empty trailing page (11 items over a max of 10
+    become 6+5, not 10+1)."""
+    import math
+
+    if not seq:
+        return [[]]
+    max_size = max(1, int(max_size))
+    pages_needed = math.ceil(len(seq) / max_size)
+    per = math.ceil(len(seq) / pages_needed)
+    return [seq[i:i + per] for i in range(0, len(seq), per)]
+
+
+def _chunk_first_rest(seq: list, first: int, rest: int) -> List[list]:
+    """Paginate ``seq`` where the first page holds ``first`` items (it shares the
+    slide with something else, e.g. a summary box) and later pages hold ``rest``."""
+    first, rest = max(1, int(first)), max(1, int(rest))
+    if not seq:
+        return [[]]
+    pages = [seq[:first]]
+    i = first
+    while i < len(seq):
+        pages.append(seq[i:i + rest])
+        i += rest
+    return pages
+
+
+def _rows_that_fit(top: float, row_h: float, *, header_h: float = 0.0) -> int:
+    avail = _BODY_BOTTOM - top - header_h
+    return max(1, int(avail / max(row_h, 0.01)))
+
+
+def _cols_that_fit(total_w: float, fixed_w: float, min_col_w: float) -> int:
+    return max(1, int((total_w - fixed_w) / max(min_col_w, 0.1)))
+
+
+def _cont_title(title: str, page: int, pages: int) -> str:
+    return title if pages <= 1 else f"{title} ({page} of {pages})"
+
+
 # ── slides ───────────────────────────────────────────────────────────────── #
 def _slide_title(prs, result: ScorecardResult, content: DeckContent) -> None:
     slide = _blank_slide(prs)
@@ -225,14 +280,22 @@ def _slide_overview(prs, result: ScorecardResult, content: DeckContent) -> None:
     _title_block(slide, "Overview")
     meta = content.meta
     winner = meta.winning_vendor or (resolve_winner(result).vendor if resolve_winner(result) else "—")
+
+    def _bulleted(items: List[str], cap: int) -> str:
+        items = list(items)
+        shown = [f"• {x}" for x in items[:cap]]
+        if len(items) > cap:
+            shown.append(f"• (+{len(items) - cap} more — see JSON/Excel)")
+        return "\n".join(shown) or "—"
+
     rows = [
         ("Procurement Summary", meta.summary or "—"),
         ("RFP #", meta.rfp_number or "—"),
         ("Procuring Agency", meta.agency or "—"),
         ("Total Contract Value", meta.tcv or "—"),
         ("Winning Vendor", winner),
-        ("List of all Vendors", "\n".join(f"• {v}" for v in (meta.vendors or result.vendor_names())) or "—"),
-        ("Documents Received", "\n".join(f"• {d}" for d in meta.documents[:12]) or "—"),
+        ("List of all Vendors", _bulleted(meta.vendors or result.vendor_names(), 14)),
+        ("Documents Received", _bulleted(meta.documents, 14)),
     ]
     table = _table(slide, len(rows), 2, _MARGIN, _BODY_TOP, _CONTENT_W, 5.6)
     table.columns[0].width = Inches(3.2)
@@ -245,8 +308,6 @@ def _slide_overview(prs, result: ScorecardResult, content: DeckContent) -> None:
 
 
 def _slide_final_scoring(prs, result: ScorecardResult, content: DeckContent) -> None:
-    slide = _blank_slide(prs)
-    _title_block(slide, "Final Scoring")
     vendors = result.ranked_vendors()
     has_financial = any(v.financial_pct is not None for v in vendors)
 
@@ -255,46 +316,55 @@ def _slide_final_scoring(prs, result: ScorecardResult, content: DeckContent) -> 
     focal = resolve_focal(result)
     winner = resolve_winner(result)
 
-    # lead narrative
+    # lead narrative (first page only)
     if content.drivers and content.drivers.why_won:
         lead = f"{winner.vendor} was selected — {content.drivers.why_won[0].factor}." if winner else ""
     elif result.ci and result.ci.summary:
         lead = result.ci.summary
     else:
         lead = ""
-    if lead:
-        _textbox(slide, lead, _MARGIN, _BODY_TOP, _CONTENT_W, 0.7, size=12, color=_INK)
-
-    top = _BODY_TOP + (0.8 if lead else 0.05)
-    table = _table(slide, 1 + len(vendors), len(cols), _MARGIN, top, _CONTENT_W,
-                   min(0.55 * (len(vendors) + 1), 5.4))
-    _header_row(table, cols)
 
     def _ord(n: Optional[int]) -> str:
         return f"{n}" if n else "—"
 
-    for i, v in enumerate(vendors, start=1):
-        is_focal = focal is not None and v.vendor == focal.vendor
-        base_fill = RGBColor(0xE8, 0xF0, 0xFE) if is_focal else (_ROW_ALT if i % 2 else _WHITE)
-        _set_cell(table.cell(i, 0), v.vendor, fill=base_fill, bold=is_focal, size=11)
-        _set_cell(table.cell(i, 1), _ord(v.technical_rank), fill=base_fill, size=11, align=PP_ALIGN.CENTER)
-        c = 2
-        if has_financial:
-            _set_cell(table.cell(i, 2), _ord(v.financial_rank), fill=base_fill, size=11, align=PP_ALIGN.CENTER)
-            c = 3
-        final = "Winner" if (winner and v.vendor == winner.vendor) else _final_score(v)
-        _set_cell(table.cell(i, c), final, fill=base_fill, bold=(winner and v.vendor == winner.vendor),
-                  size=11, align=PP_ALIGN.CENTER)
+    row_h = 0.42
+    first_top = _BODY_TOP + (0.8 if lead else 0.05)
+    # Page 1 (with the lead line) is the tightest; cap every page to what fits
+    # there and balance the split so we never leave a near-empty trailing page.
+    per_first = _rows_that_fit(first_top, row_h, header_h=row_h)
+    pages = _even_chunk(vendors, per_first)
+
+    for pi, group in enumerate(pages):
+        slide = _blank_slide(prs)
+        _title_block(slide, _cont_title("Final Scoring", pi + 1, len(pages)))
+        top = _BODY_TOP + 0.05
+        if pi == 0 and lead:
+            _textbox(slide, lead, _MARGIN, _BODY_TOP, _CONTENT_W, 0.7, size=12, color=_INK)
+            top = first_top
+        table = _table(slide, 1 + len(group), len(cols), _MARGIN, top, _CONTENT_W,
+                       row_h * (len(group) + 1))
+        _header_row(table, cols)
+        for i, v in enumerate(group, start=1):
+            is_focal = focal is not None and v.vendor == focal.vendor
+            base_fill = RGBColor(0xE8, 0xF0, 0xFE) if is_focal else (_ROW_ALT if i % 2 else _WHITE)
+            _set_cell(table.cell(i, 0), v.vendor, fill=base_fill, bold=is_focal, size=11)
+            _set_cell(table.cell(i, 1), _ord(v.technical_rank), fill=base_fill, size=11, align=PP_ALIGN.CENTER)
+            c = 2
+            if has_financial:
+                _set_cell(table.cell(i, 2), _ord(v.financial_rank), fill=base_fill, size=11, align=PP_ALIGN.CENTER)
+                c = 3
+            final = "Winner" if (winner and v.vendor == winner.vendor) else _final_score(v)
+            _set_cell(table.cell(i, c), final, fill=base_fill, bold=(winner and v.vendor == winner.vendor),
+                      size=11, align=PP_ALIGN.CENTER)
 
 
 def _slide_scoring_overview(prs, result: ScorecardResult, content: DeckContent) -> None:
-    slide = _blank_slide(prs)
-    _title_block(slide, "Scoring Overview")
     ranked = result.ranked_vendors()
     focal = resolve_focal(result)
     winner = ranked[0] if ranked else None
+    dims = result.scheme.dimensions
 
-    # winner summary box (label | value)
+    # winner summary box (label | value) — rendered once, on the first slide
     driver = ""
     if content.drivers and content.drivers.why_won:
         driver = "; ".join(r.factor for r in content.drivers.why_won[:2])
@@ -312,77 +382,72 @@ def _slide_scoring_overview(prs, result: ScorecardResult, content: DeckContent) 
         (f"{result.focal_vendor} Outcome", focal_outcome),
         ("Decision Driver", driver or "—"),
     ]
-    box = _table(slide, len(box_rows), 2, _MARGIN, _BODY_TOP, 6.6, 2.1)
-    box.columns[0].width = Inches(1.9)
-    box.columns[1].width = Inches(4.7)
-    for r, (label, value) in enumerate(box_rows):
-        _set_cell(box.cell(r, 0), label, fill=_LABEL_BG, bold=True, size=10)
-        _set_cell(box.cell(r, 1), value, fill=_WHITE, size=10)
+    box_h = 0.32 * len(box_rows)
+    rag_top_first = _BODY_TOP + box_h + 0.3
 
-    # RAG dimension table
-    vendors = ranked
-    n = len(vendors)
+    def _draw_box(slide) -> None:
+        box = _table(slide, len(box_rows), 2, _MARGIN, _BODY_TOP, 6.6, box_h)
+        box.columns[0].width = Inches(1.9)
+        box.columns[1].width = Inches(4.7)
+        for r, (label, value) in enumerate(box_rows):
+            _set_cell(box.cell(r, 0), label, fill=_LABEL_BG, bold=True, size=10)
+            _set_cell(box.cell(r, 1), value, fill=_WHITE, size=10)
+
     dim_w = 2.2
-    vendor_w = _clamp((_CONTENT_W - dim_w) / max(n, 1), 0.9, 2.4)
-    tbl_w = dim_w + vendor_w * n
-    body_sz = 10 if n <= 4 else (9 if n <= 6 else 8)
-    table = _table(slide, 1 + len(result.scheme.dimensions), 1 + n, _MARGIN, 3.7, tbl_w,
-                   min(0.42 * (len(result.scheme.dimensions) + 1), 3.3))
-    table.columns[0].width = Inches(dim_w)
-    for j in range(n):
-        table.columns[1 + j].width = Inches(vendor_w)
-    _header_row(table, ["Dimension"] + [v.vendor for v in vendors], size=body_sz + 1)
-    for r, dim in enumerate(result.scheme.dimensions, start=1):
-        _set_cell(table.cell(r, 0), dim.name, fill=_LABEL_BG, bold=True, size=body_sz)
-        for j, v in enumerate(vendors):
-            cell = v.cells.get(dim.id)
-            pct = cell.normalized_pct if cell else None
-            native = _cell_display(cell)
-            label = _adjective(pct) + (f"\n({native})" if native != "—" else "")
-            _set_cell(table.cell(r, 1 + j), label, fill=_rag_fill(pct), size=body_sz,
-                      align=PP_ALIGN.CENTER)
+    row_h = 0.44
+    cols_per_page = _cols_that_fit(_CONTENT_W, dim_w, min_col_w=0.9)
+    vendor_pages = _even_chunk(ranked, cols_per_page)
+    per_first = _rows_that_fit(rag_top_first, row_h, header_h=row_h)
+    per_rest = _rows_that_fit(_BODY_TOP, row_h, header_h=row_h)
+
+    # (vendor_group, dim_group, show_box) for every slide this section emits
+    pages: List[tuple] = []
+    for vi, vgroup in enumerate(vendor_pages):
+        dim_groups = _chunk_first_rest(dims, per_first, per_rest) if vi == 0 else _chunk(dims, per_rest)
+        for di, dgroup in enumerate(dim_groups):
+            pages.append((vgroup, dgroup, vi == 0 and di == 0))
+
+    def _draw_rag(slide, vgroup, dgroup, top) -> None:
+        n = len(vgroup)
+        vendor_w = _clamp((_CONTENT_W - dim_w) / max(n, 1), 0.9, 2.4)
+        tbl_w = dim_w + vendor_w * n
+        body_sz = 10 if n <= 4 else (9 if n <= 6 else 8)
+        table = _table(slide, 1 + len(dgroup), 1 + n, _MARGIN, top, tbl_w, row_h * (len(dgroup) + 1))
+        table.columns[0].width = Inches(dim_w)
+        for j in range(n):
+            table.columns[1 + j].width = Inches(vendor_w)
+        _header_row(table, ["Dimension"] + [v.vendor for v in vgroup], size=body_sz + 1)
+        for r, dim in enumerate(dgroup, start=1):
+            _set_cell(table.cell(r, 0), dim.name, fill=_LABEL_BG, bold=True, size=body_sz)
+            for j, v in enumerate(vgroup):
+                cell = v.cells.get(dim.id)
+                pct = cell.normalized_pct if cell else None
+                native = _cell_display(cell)
+                label = _adjective(pct) + (f"\n({native})" if native != "—" else "")
+                _set_cell(table.cell(r, 1 + j), label, fill=_rag_fill(pct), size=body_sz,
+                          align=PP_ALIGN.CENTER)
+
+    total = len(pages)
+    for idx, (vgroup, dgroup, show_box) in enumerate(pages, start=1):
+        slide = _blank_slide(prs)
+        _title_block(slide, _cont_title("Scoring Overview", idx, total))
+        top = _BODY_TOP
+        if show_box:
+            _draw_box(slide)
+            top = rag_top_first
+        _draw_rag(slide, vgroup, dgroup, top)
 
 
 def _slide_detailed(prs, result: ScorecardResult) -> None:
-    slide = _blank_slide(prs)
-    _title_block(slide, "Detailed Scoring")
     scheme = result.scheme
-    vendors = result.ranked_vendors()
-    n = len(vendors)
+    vendors_all = result.ranked_vendors()
 
-    show_native = any(v.native_total is not None for v in vendors)
+    show_native = any(v.native_total is not None for v in vendors_all)
     summary_labels = ["Normalized Total"]
     if show_native:
         tm = scheme.total_max_points
         summary_labels.append("Native Total" + (f" (/{tm:g})" if tm else ""))
     summary_labels.append("Rank")
-
-    n_rows = 1 + len(scheme.dimensions) + len(summary_labels)
-    dim_w, notes_w = 2.0, 2.6
-    vendor_w = _clamp((_CONTENT_W - dim_w - notes_w) / max(n, 1), 0.7, 2.2)
-    tbl_w = dim_w + notes_w + vendor_w * n
-    n_cols = 1 + n + 1
-    body_sz = 10 if n <= 4 else (9 if n <= 7 else 8)
-
-    table = _table(slide, n_rows, n_cols, _MARGIN, _BODY_TOP, tbl_w, min(0.4 * n_rows, 5.7))
-    table.columns[0].width = Inches(dim_w)
-    for j in range(n):
-        table.columns[1 + j].width = Inches(vendor_w)
-    table.columns[n_cols - 1].width = Inches(notes_w)
-
-    _header_row(table, ["Evaluation Dimension"] + [v.vendor for v in vendors] + ["Evaluation Notes"],
-                size=body_sz + 1)
-
-    r = 1
-    for dim in scheme.dimensions:
-        _set_cell(table.cell(r, 0), dim.name, fill=_LABEL_BG, bold=True, size=body_sz)
-        for j, v in enumerate(vendors):
-            cell = v.cells.get(dim.id)
-            prov = cell.provenance if cell else Provenance.NOT_SCORED
-            _set_cell(table.cell(r, 1 + j), _cell_display(cell), fill=_FILL.get(prov, _WHITE),
-                      size=body_sz, align=PP_ALIGN.CENTER)
-        _set_cell(table.cell(r, n_cols - 1), _dim_note(result, dim.id), size=max(body_sz - 1, 7))
-        r += 1
 
     def _summary_value(label: str, v: VendorResult) -> str:
         if label.startswith("Normalized"):
@@ -393,14 +458,59 @@ def _slide_detailed(prs, result: ScorecardResult) -> None:
             return _rank_tag(v)
         return ""
 
-    for label in summary_labels:
-        _set_cell(table.cell(r, 0), label, fill=_LABEL_BG, bold=True, size=body_sz)
-        for j, v in enumerate(vendors):
-            _set_cell(table.cell(r, 1 + j), _summary_value(label, v), fill=_LABEL_BG, bold=True,
-                      size=body_sz, align=PP_ALIGN.CENTER)
-        note = result.ci.summary if (label == "Rank" and result.ci and result.ci.summary) else ""
-        _set_cell(table.cell(r, n_cols - 1), note, fill=_LABEL_BG, size=max(body_sz - 1, 7))
-        r += 1
+    # Unified ordered body rows so dimensions AND the totals/rank rows paginate
+    # together (the totals rows previously fell off the bottom on tall decks).
+    body_rows = [("dim", d) for d in scheme.dimensions] + [("sum", lbl) for lbl in summary_labels]
+
+    dim_w, notes_w = 2.0, 2.6
+    row_h = 0.5                       # table geometry
+    fit_h = 0.64                      # conservative capacity (notes wrap to a few lines)
+    cols_per_page = _cols_that_fit(_CONTENT_W, dim_w + notes_w, min_col_w=0.85)
+    vendor_pages = _even_chunk(vendors_all, cols_per_page)
+    rows_per_page = _rows_that_fit(_BODY_TOP, fit_h, header_h=row_h)
+    row_pages = _even_chunk(body_rows, rows_per_page)
+
+    total = len(vendor_pages) * len(row_pages)
+    idx = 0
+    for vgroup in vendor_pages:
+        n = len(vgroup)
+        vendor_w = _clamp((_CONTENT_W - dim_w - notes_w) / max(n, 1), 0.7, 2.2)
+        tbl_w = dim_w + notes_w + vendor_w * n
+        n_cols = 1 + n + 1
+        body_sz = 10 if n <= 4 else (9 if n <= 7 else 8)
+        for rgroup in row_pages:
+            idx += 1
+            slide = _blank_slide(prs)
+            _title_block(slide, _cont_title("Detailed Scoring", idx, total))
+            table = _table(slide, 1 + len(rgroup), n_cols, _MARGIN, _BODY_TOP, tbl_w,
+                           row_h * (len(rgroup) + 1))
+            table.columns[0].width = Inches(dim_w)
+            for j in range(n):
+                table.columns[1 + j].width = Inches(vendor_w)
+            table.columns[n_cols - 1].width = Inches(notes_w)
+            _header_row(
+                table,
+                ["Evaluation Dimension"] + [v.vendor for v in vgroup] + ["Evaluation Notes"],
+                size=body_sz + 1,
+            )
+            for r, (kind, item) in enumerate(rgroup, start=1):
+                if kind == "dim":
+                    dim = item
+                    _set_cell(table.cell(r, 0), dim.name, fill=_LABEL_BG, bold=True, size=body_sz)
+                    for j, v in enumerate(vgroup):
+                        cell = v.cells.get(dim.id)
+                        prov = cell.provenance if cell else Provenance.NOT_SCORED
+                        _set_cell(table.cell(r, 1 + j), _cell_display(cell), fill=_FILL.get(prov, _WHITE),
+                                  size=body_sz, align=PP_ALIGN.CENTER)
+                    _set_cell(table.cell(r, n_cols - 1), _dim_note(result, dim.id), size=max(body_sz - 1, 7))
+                else:
+                    label = item
+                    _set_cell(table.cell(r, 0), label, fill=_LABEL_BG, bold=True, size=body_sz)
+                    for j, v in enumerate(vgroup):
+                        _set_cell(table.cell(r, 1 + j), _summary_value(label, v), fill=_LABEL_BG,
+                                  bold=True, size=body_sz, align=PP_ALIGN.CENTER)
+                    note = result.ci.summary if (label == "Rank" and result.ci and result.ci.summary) else ""
+                    _set_cell(table.cell(r, n_cols - 1), note, fill=_LABEL_BG, size=max(body_sz - 1, 7))
 
 
 def _dim_note(result: ScorecardResult, dim_id: str) -> str:
@@ -446,8 +556,10 @@ def _slide_outcome_drivers(prs, result: ScorecardResult, content: DeckContent) -
 
     def _driver_table(title_text, rows, left, header_labels):
         _textbox(slide, title_text, left, _BODY_TOP, half, 0.4, size=15, bold=True, color=_IBM_DARK)
-        table = _table(slide, 1 + max(len(rows), 1), 2, left, _BODY_TOP + 0.45, half,
-                       min(0.5 * (len(rows) + 1), 4.9))
+        avail = _BODY_BOTTOM - (_BODY_TOP + 0.45)
+        n_body = max(len(rows), 1)
+        table = _table(slide, 1 + n_body, 2, left, _BODY_TOP + 0.45, half,
+                       min(0.72 * (n_body + 1), avail))
         table.columns[0].width = Inches(half * 0.42)
         table.columns[1].width = Inches(half * 0.58)
         _header_row(table, header_labels, size=10)
@@ -471,19 +583,23 @@ def _slide_category_comparison(prs, content: DeckContent) -> None:
     comp = content.comparison
     if comp is None or not comp.rows:
         return
-    slide = _blank_slide(prs)
-    _title_block(slide, f"{comp.focal} vs. {comp.winner}")
-    rows = comp.rows
-    table = _table(slide, 1 + len(rows), 3, _MARGIN, _BODY_TOP, _CONTENT_W, min(1.2 * (len(rows) + 1), 5.7))
-    table.columns[0].width = Inches(2.2)
-    table.columns[1].width = Inches((_CONTENT_W - 2.2) / 2)
-    table.columns[2].width = Inches((_CONTENT_W - 2.2) / 2)
-    _header_row(table, ["Category", comp.focal, comp.winner], size=12)
-    for r, row in enumerate(rows, start=1):
-        fill = _ROW_ALT if r % 2 else _WHITE
-        _set_cell(table.cell(r, 0), row.category, fill=_LABEL_BG, bold=True, size=11, anchor=MSO_ANCHOR.TOP)
-        _set_cell(table.cell(r, 1), _bullets(row.focal_points), fill=fill, size=10, anchor=MSO_ANCHOR.TOP)
-        _set_cell(table.cell(r, 2), _bullets(row.winner_points), fill=fill, size=10, anchor=MSO_ANCHOR.TOP)
+    row_h = 1.15
+    per_page = _rows_that_fit(_BODY_TOP, row_h, header_h=0.45)
+    pages = _even_chunk(comp.rows, per_page)
+    for pi, group in enumerate(pages):
+        slide = _blank_slide(prs)
+        _title_block(slide, _cont_title(f"{comp.focal} vs. {comp.winner}", pi + 1, len(pages)))
+        table = _table(slide, 1 + len(group), 3, _MARGIN, _BODY_TOP, _CONTENT_W,
+                       min(row_h * (len(group) + 1), _BODY_BOTTOM - _BODY_TOP))
+        table.columns[0].width = Inches(2.2)
+        table.columns[1].width = Inches((_CONTENT_W - 2.2) / 2)
+        table.columns[2].width = Inches((_CONTENT_W - 2.2) / 2)
+        _header_row(table, ["Category", comp.focal, comp.winner], size=12)
+        for r, row in enumerate(group, start=1):
+            fill = _ROW_ALT if r % 2 else _WHITE
+            _set_cell(table.cell(r, 0), row.category, fill=_LABEL_BG, bold=True, size=11, anchor=MSO_ANCHOR.TOP)
+            _set_cell(table.cell(r, 1), _bullets(row.focal_points), fill=fill, size=10, anchor=MSO_ANCHOR.TOP)
+            _set_cell(table.cell(r, 2), _bullets(row.winner_points), fill=fill, size=10, anchor=MSO_ANCHOR.TOP)
 
 
 # ── entry point ──────────────────────────────────────────────────────────── #
