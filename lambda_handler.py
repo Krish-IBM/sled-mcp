@@ -90,6 +90,7 @@ BID_ANALYSIS_AGENT_URL = os.environ.get(
     "https://5uanpy2351.execute-api.us-east-1.amazonaws.com/",
 )
 COMPETITOR_ANALYSIS_URL = os.environ.get("COMPETITOR_ANALYSIS_URL", "")
+DEAL_DEBRIEF_URL    = os.environ.get("DEAL_DEBRIEF_URL", "")
 
 # ── Agent registry — maps agent name → backend URL, payload key, description ───
 # payload_key is the JSON field each backend expects (docs/scoring use "query";
@@ -169,6 +170,24 @@ AGENT_REGISTRY = {
             "competitor", "strategy", "strategies", "solutioning", "staffing",
             "playbook", "differentiators", "themes", "profile", "positioning",
             "analyze", "analysis", "pricing", "win",
+        ),
+    },
+    "deal_debrief": {
+        "url": DEAL_DEBRIEF_URL,
+        "payload_key": "file_query",
+        "description": (
+            "Debrief a won/lost SLED deal from its call recording or transcript in "
+            "the CI corpus: extracts a 6-dimension scorecard (client intimacy, "
+            "solution quality, deal approach, RFP response, price, orals) with "
+            "evidence-cited rationales and generates an IBM-themed PowerPoint. "
+            "Pass the deal/recording name as the query (fuzzy match is fine, e.g. "
+            "'Loudoun County payroll'); returns a plain-English summary plus an "
+            "S3 link to the generated .pptx."
+        ),
+        "keywords": (
+            "debrief", "debriefs", "recording", "recordings", "transcript",
+            "transcripts", "retrospective", "retro", "lessons", "postmortem",
+            "won", "lost", "deal",
         ),
     },
 }
