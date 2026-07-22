@@ -91,6 +91,7 @@ BID_ANALYSIS_AGENT_URL = os.environ.get(
 )
 COMPETITOR_ANALYSIS_URL = os.environ.get("COMPETITOR_ANALYSIS_URL", "")
 DEAL_DEBRIEF_URL    = os.environ.get("DEAL_DEBRIEF_URL", "")
+GENERAL_AGENT_URL   = os.environ.get("GENERAL_AGENT_URL", "")
 
 # ── Agent registry — maps agent name → backend URL, payload key, description ───
 # payload_key is the JSON field each backend expects (docs/scoring use "query";
@@ -190,11 +191,28 @@ AGENT_REGISTRY = {
             "won", "lost", "deal",
         ),
     },
+    "general": {
+        "url": GENERAL_AGENT_URL,
+        "payload_key": "query",
+        "description": (
+            "General-purpose SLED assistant for open-ended questions that don't "
+            "fit the specialized tools. Answers STRICTLY from the SLED competitive-"
+            "intelligence corpus (knowledge base); if the corpus has nothing on "
+            "the topic it says so rather than using outside knowledge. Use this as "
+            "the catch-all when no other tool clearly applies."
+        ),
+        # No keywords on purpose: 'general' must never win keyword scoring. It is
+        # reached only when the client picks sled_general explicitly, or as the
+        # DEFAULT_AGENT fallback for a query that matches no specialist.
+        "keywords": (),
+    },
 }
 
-# Agent used when the keyword heuristic finds no match. docs is always configured
-# (SLED_DOCS_QUERY_URL is required), so it is a safe default; override via env.
-DEFAULT_AGENT = os.environ.get("DEFAULT_AGENT", "docs")
+# Agent used when the keyword heuristic finds no match. Prefer the general
+# catch-all agent, which answers any question (corpus-grounded or general). If
+# GENERAL_AGENT_URL is unset (general not deployed), choose_agent's guard falls
+# through to the first configured agent (docs), so this stays safe. Override via env.
+DEFAULT_AGENT = os.environ.get("DEFAULT_AGENT", "general")
 
 # Per-agent tool name → agent name (e.g. "sled_scoring" → "scoring").
 _AGENT_TOOL_NAMES = {f"sled_{name}": name for name in AGENT_REGISTRY}
@@ -561,7 +579,13 @@ def handle_initialize(params: dict, _claims: dict) -> dict:
         "capabilities": {
             "tools": {},
         },
-        "instructions": "Use the available tools to query SLED competitive intelligence documents.",
+        "instructions": (
+            "Answer every SLED question by calling one of these tools rather than "
+            "from your own knowledge. If you are unsure which tool fits, call "
+            "sled_agent — the server routes the query to the best agent and falls "
+            "back to the general SLED agent (which answers only from the SLED "
+            "corpus) when no specialist applies."
+        ),
     }
 
 

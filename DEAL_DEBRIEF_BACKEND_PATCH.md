@@ -1,9 +1,19 @@
 # deal-analysis-agent (Deal Debrief) — backend patch to fold into source
 
 The `sled-deal-analysis-agent-py` Lambda was wired into the MCP router on 2026-07-20.
-Two fixes were applied **directly to the deployed zip** (via `update-function-code`) to make
+Fixes were applied **directly to the deployed zip** (via `update-function-code`) to make
 it work through Otto. Its source-of-truth lives in your separate deal-analysis-agent project —
-**apply these same two edits there**, or the next redeploy from source will regress them.
+**apply these edits there**, or the next redeploy from source will regress them.
+
+> ⚠️ **REGRESSED ONCE ALREADY.** A source redeploy on **2026-07-21 14:21 UTC** wiped Patch 2
+> (`maxTokens` was back to 1024, `_loads_lenient` gone) → the live 500 `"AI inference returned no
+> data"` came right back through Otto. Re-applied the same day and added **Fix 3** (fuzzy match +
+> read guard). If you redeploy this Lambda from source, confirm ALL FOUR fixes below survive.
+> Rollback of the pre-fix zip: `build/sled-deal-analysis-agent-py.zip.rollback-20260721-150112`.
+>
+> **Fix 4 (2026-07-21, latency)** dropped the redundant second Bedrock pass to pull the
+> synchronous request off the API-Gateway/router timeout cliff. Deployed as Lambda **v11**.
+> Rollback of the pre-Fix-4 (v10, all of 1–3) zip: `build/sled-deal-analysis-agent-py.zip.rollback-droppass2-20260721`.
 
 ## Why
 1. **`handler.py`** read `event.get("file_query")` off the raw event root. Behind the HTTP API
@@ -84,6 +94,59 @@ it work through Otto. Its source-of-truth lives in your separate deal-analysis-a
 -        return json.loads(raw)
 +        return _loads_lenient(raw)
 ```
+
+## Fix 3 — fuzzy match hardening + read guard (added 2026-07-21)
+Symptom: `file_query="Loudoun County payroll"` → fast **2.5s generic 500** (`{"message":"Internal
+Server Error"}`). Cause: the real file is `...ERP HCM **Payoll** Implementation.docx` (typo — no "r"),
+so `find_s3_file`'s "all tokens present" rule missed and it fell to "any token, first hit wins",
+which returned a **non-.docx** object; `read_docx_from_s3` then threw uncaught → raw 500.
+
+`tools.py find_s3_file`: (1) only collect keys ending `.docx` (handler can't parse anything else);
+(2) replace "first hit" with a **best token-overlap score** (`max` over `(score, -len(key))`), raising
+`FileNotFoundError` only when the best score is 0. `handler.py`: wrap `read_docx_from_s3` in
+try/except → return a clean **502** `"Matched file could not be read as a .docx"` instead of a raw 500.
+
+## Fix 4 — drop the redundant second Bedrock pass (added 2026-07-21, latency)
+Symptom: the whole request ran **~28s** end-to-end, hard against the router's **29s** urllib
+timeout and the API Gateway **30s** hard cap → intermittent timeout/500 through Otto.
+
+Measured breakdown (live Loudoun deal): Pass 1 (`run_ai_inference`, extract scorecard JSON) **~20s**;
+Pass 2 (`generate_score_rationales`) **~5.4s**; S3 read + PPTX build + upload **~3s**. Pass 1 output
+is bounded by the fixed 6-dimension schema, so its latency does **not** grow with transcript length —
+the ~28s is roughly steady-state, not a "long transcript" edge case.
+
+Pass 2 was **redundant**: the extraction schema already gives every scorecard dimension its own
+`summary`, and `format_summary_text` already falls back to that summary when rationales are absent
+(`evidence = rationale if rationale else summary`). The PPTX never used rationales at all
+(`create_ibm_themed_ppt(extracted_data)` only). So Fix 4 removes the pass-2 call in `handler.py`:
+
+```diff
+-    # 4. Generate score rationales (second pass — evidence citations, doesn't touch JSON)
+-    rationales = tools.generate_score_rationales(
+-        document_text, extracted_data.get("scorecard", {})
+-    )
+-
+-    # 5. Build the PowerPoint → bytes (uses original JSON only, rationales not injected)
+-    pptx_bytes = tools.create_ibm_themed_ppt(extracted_data)
++    # 4. Build the PowerPoint → bytes (uses the extracted JSON only)
++    pptx_bytes = tools.create_ibm_themed_ppt(extracted_data)
+...
+-    summary = tools.format_summary_text(extracted_data, rationales=rationales)
++    summary = tools.format_summary_text(extracted_data)
+```
+
+`tools.generate_score_rationales` is now unused (kept in `tools.py` as harmless dead code; delete it
+in source if you prefer). Result: end-to-end median **~28s → ~19s** (measured 6 live runs: 16.5,
+16.9, 19.4, 21.0, 26.7s + one 30.1s outlier under a rapid-fire test burst). **5/6 succeeded.**
+
+## Residual latency caveat (not fully eliminated by Fix 4)
+Pass 1's own Bedrock generation latency is variable and its **tail can still reach/exceed 30s**
+(one of six live runs 503'd at the 30s API-GW cap, aggravated by back-to-back test bursts →
+Bedrock throttling; realistic single-request usage lands ~16–27s). Fix 4 pulls the *typical* case
+well under the ceiling but does not guarantee zero timeouts. The **durable** elimination is an async
+job model (like scoring/competitor): return a `job_id` immediately, do the Bedrock/PPTX work in a
+background invoke, and poll via `status`/`result`. That spans backend + router wiring and was
+deferred. Note: raising the router urllib timeout won't help — the API Gateway 30s is a hard max.
 
 ## Router wiring (this repo, already done)
 - `lambda_handler.py`: added `DEAL_DEBRIEF_URL` env read + `deal_debrief` entry in `AGENT_REGISTRY`

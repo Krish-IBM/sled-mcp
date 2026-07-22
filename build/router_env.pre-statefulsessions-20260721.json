@@ -1,0 +1,18 @@
+{
+    "API_HOST": "zie08z9fuj.execute-api.us-east-1.amazonaws.com",
+    "STAGE": "prod",
+    "W3ID_INTROSPECTION_URL": "https://login.w3.ibm.com/v1.0/endpoint/default/introspect",
+    "W3ID_ISSUER": "https://login.w3.ibm.com/oidc/endpoint/default",
+    "DEFAULT_AGENT": "general",
+    "SLED_DOCS_QUERY_URL": "https://zie08z9fuj.execute-api.us-east-1.amazonaws.com/sled-docs-query/sled-docs-query",
+    "GENERAL_AGENT_URL": "https://jm5568sjub.execute-api.us-east-1.amazonaws.com/",
+    "W3ID_JWKS_URI": "https://login.w3.ibm.com/v1.0/endpoint/default/jwks",
+    "W3ID_SCOPES_SUPPORTED": "openid",
+    "COMPETITOR_ANALYSIS_URL": "https://7pivwcjmv6.execute-api.us-east-1.amazonaws.com/",
+    "SCORING_AGENT_URL": "https://oo88sv52q4.execute-api.us-east-1.amazonaws.com/",
+    "ANALYZE_DEAL_URL": "https://zie08z9fuj.execute-api.us-east-1.amazonaws.com/analyze-deal-and-upload/analyze-deal",
+    "DEAL_DEBRIEF_URL": "https://saziljapre.execute-api.us-east-1.amazonaws.com/",
+    "W3ID_AUDIENCE": "N2FiODhhMTQtOGUxMS00",
+    "W3ID_CLIENT_SECRET_ARN": "arn:aws:secretsmanager:us-east-1:211125468742:secret:sled-mcp/w3id-client-secret-5fOX9S",
+    "W3ID_CLIENT_ID": "N2FiODhhMTQtOGUxMS00"
+}

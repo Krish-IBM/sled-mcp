@@ -1,0 +1,5 @@
+# General agent runtime deps. It reuses only scoring_agent/bedrock.py (the
+# BedrockClient wrapper) plus stdlib, so the sole dependency is a recent boto3
+# with the Bedrock Runtime Converse + agent-runtime Retrieve APIs. Pinned to
+# match the other agents' bundled boto3.
+boto3==1.42.97
